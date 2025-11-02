@@ -4,6 +4,8 @@ import AuthLayout from "@/components/auth/auth-layout";
 import { SignUpForm } from "@/components/auth/sign-up/components/sign-up-form";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Sign Up",
   description: "Create a new account",

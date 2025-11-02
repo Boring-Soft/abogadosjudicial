@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (hasSupabaseCredentials) {
       supabase = createClientComponentClient();
     }
-  } catch (error) {
+  } catch {
     console.warn("Supabase client creation failed. Running without authentication.");
   }
 

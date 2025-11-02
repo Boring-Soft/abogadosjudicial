@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Database, Plus, TrendingUp, Users, Phone, MessageSquare, BarChart3, PieChart, Download, Filter } from "lucide-react";
+import { Database, TrendingUp, Users, Phone, MessageSquare, BarChart3, PieChart, Download, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   BarChart,
   Bar,
@@ -18,7 +17,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 
@@ -50,7 +48,7 @@ const conversionData = [
 ];
 
 export function DataStudioContent() {
-  const [dateRange, setDateRange] = useState("Last 30 days");
+  const [dateRange] = useState("Last 30 days");
 
   return (
     <div className="space-y-6">

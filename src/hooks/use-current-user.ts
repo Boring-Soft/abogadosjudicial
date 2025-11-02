@@ -19,22 +19,22 @@ export function useCurrentUser(): CurrentUserData {
   const [error] = useState<Error | null>(null);
 
   // Mock user for design purposes
-  const mockUser: any = {
+  const mockUser = {
     id: "mock-user-id",
     email: "demo@boringautomation.com",
     user_metadata: {
       full_name: "Demo User",
     },
-  };
+  } as unknown as User;
 
-  const mockProfile: any = {
+  const mockProfile = {
     id: "mock-profile-id",
     userId: "mock-user-id",
     firstName: "Demo",
     lastName: "User",
     avatarUrl: null,
     role: "USER",
-  };
+  } as unknown as Profile;
 
   return {
     user: mockUser,

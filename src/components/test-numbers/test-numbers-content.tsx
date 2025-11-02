@@ -76,7 +76,7 @@ export function TestNumbersContent() {
             <h3 className="font-semibold">How Test Numbers Work</h3>
             <p className="text-sm text-muted-foreground">
               Test numbers are special phone numbers that allow you to test your voice agents without
-              using real phone numbers or incurring charges. Calls to test numbers are logged but don't
+              using real phone numbers or incurring charges. Calls to test numbers are logged but don&apos;t
               actually place phone calls.
             </p>
           </div>

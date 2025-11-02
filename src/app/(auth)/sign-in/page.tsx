@@ -4,6 +4,8 @@ import AuthLayout from "@/components/auth/auth-layout";
 import { UserAuthForm } from "@/components/auth/sign-in/components/user-auth-form";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Sign In",
   description: "Sign in to your account",
