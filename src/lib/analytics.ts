@@ -15,26 +15,38 @@
  * - Events are anonymized and aggregated
  */
 
+// Window interface extension for analytics libraries
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+    ga?: (...args: unknown[]) => void;
+    analytics?: {
+      track: (eventName: string, properties?: Record<string, unknown>) => void;
+    };
+    fbq?: (...args: unknown[]) => void;
+  }
+}
+
 // Types for event data
-export interface CTAClickEvent {
+export interface CTAClickEvent extends Record<string, unknown> {
   cta_location: string; // e.g., "hero", "final_cta", "navbar"
   cta_text: string; // e.g., "Start for Free", "Get Started"
   cta_type: "primary" | "secondary";
   destination_url?: string;
 }
 
-export interface SectionViewEvent {
+export interface SectionViewEvent extends Record<string, unknown> {
   section_name: string; // e.g., "hero", "features", "testimonials"
   scroll_depth: number; // percentage of page scrolled
 }
 
-export interface InteractionEvent {
+export interface InteractionEvent extends Record<string, unknown> {
   component: string; // e.g., "carousel", "accordion", "use_case_selector"
   action: string; // e.g., "next_clicked", "item_expanded", "selected"
   label?: string; // additional context
 }
 
-export interface FormEvent {
+export interface FormEvent extends Record<string, unknown> {
   form_name: string; // e.g., "newsletter", "contact"
   form_location: string; // e.g., "footer", "hero"
   success: boolean;
@@ -44,9 +56,9 @@ export interface FormEvent {
  * Core analytics function - sends events to analytics platform
  * This is a wrapper that can be integrated with your analytics provider
  */
-function trackEvent(eventName: string, eventData: Record<string, any> = {}) {
+function trackEvent(eventName: string, eventData: Record<string, unknown> = {}) {
   // Add timestamp to all events
-  const enrichedData = {
+  const enrichedData: Record<string, unknown> = {
     ...eventData,
     timestamp: new Date().toISOString(),
     page_path: typeof window !== "undefined" ? window.location.pathname : "",
@@ -61,27 +73,27 @@ function trackEvent(eventName: string, eventData: Record<string, any> = {}) {
   // Production: Send to analytics platform
   if (typeof window !== "undefined") {
     // Google Analytics 4 (gtag.js)
-    if (typeof (window as any).gtag === "function") {
-      (window as any).gtag("event", eventName, enrichedData);
+    if (typeof window.gtag === "function") {
+      window.gtag("event", eventName, enrichedData);
     }
 
     // Google Analytics Universal (ga.js) - legacy support
-    if (typeof (window as any).ga === "function") {
-      (window as any).ga("send", "event", {
-        eventCategory: enrichedData.component || "General",
+    if (typeof window.ga === "function") {
+      window.ga("send", "event", {
+        eventCategory: (enrichedData.component as string) || "General",
         eventAction: eventName,
-        eventLabel: enrichedData.label || "",
+        eventLabel: (enrichedData.label as string) || "",
       });
     }
 
     // Segment
-    if (typeof (window as any).analytics?.track === "function") {
-      (window as any).analytics.track(eventName, enrichedData);
+    if (typeof window.analytics?.track === "function") {
+      window.analytics.track(eventName, enrichedData);
     }
 
     // Facebook Pixel
-    if (typeof (window as any).fbq === "function") {
-      (window as any).fbq("trackCustom", eventName, enrichedData);
+    if (typeof window.fbq === "function") {
+      window.fbq("trackCustom", eventName, enrichedData);
     }
 
     // Custom analytics endpoint (if you have your own backend)
@@ -288,8 +300,8 @@ export function setAnalyticsConsent(granted: boolean) {
   localStorage.setItem("analytics_consent", granted ? "granted" : "denied");
 
   // Update Google Analytics consent
-  if (typeof (window as any).gtag === "function") {
-    (window as any).gtag("consent", "update", {
+  if (typeof window.gtag === "function") {
+    window.gtag("consent", "update", {
       analytics_storage: granted ? "granted" : "denied",
     });
   }

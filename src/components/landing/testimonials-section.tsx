@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -17,6 +17,13 @@ export function TestimonialsSection() {
   const [isPaused, setIsPaused] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
+  const handleNext = useCallback(() => {
+    setDirection(1);
+    const newIndex = (currentIndex + 1) % testimonials.length;
+    setCurrentIndex(newIndex);
+    trackTestimonialNavigation("next", newIndex);
+  }, [currentIndex]);
+
   // Auto-play functionality
   useEffect(() => {
     if (isPaused) return;
@@ -26,14 +33,7 @@ export function TestimonialsSection() {
     }, 5000); // Change slide every 5 seconds
 
     return () => clearInterval(interval);
-  }, [currentIndex, isPaused]);
-
-  const handleNext = () => {
-    setDirection(1);
-    const newIndex = (currentIndex + 1) % testimonials.length;
-    setCurrentIndex(newIndex);
-    trackTestimonialNavigation("next", newIndex);
-  };
+  }, [currentIndex, isPaused, handleNext]);
 
   const handlePrev = () => {
     setDirection(-1);
@@ -187,7 +187,7 @@ export function TestimonialsSection() {
                     {/* Testimonial Content */}
                     <blockquote className="text-center mb-8">
                       <p className="text-lg sm:text-xl leading-relaxed text-foreground font-medium">
-                        "{testimonials[currentIndex].content}"
+                        &ldquo;{testimonials[currentIndex].content}&rdquo;
                       </p>
                     </blockquote>
 

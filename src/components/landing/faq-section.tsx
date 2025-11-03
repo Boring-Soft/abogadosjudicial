@@ -43,7 +43,7 @@ export function FAQSection() {
           <BlurFade delay={0.2} duration={0.6}>
             <p className="mt-6 text-lg leading-8 text-muted-foreground">
               Everything you need to know about deploying AI agents for your
-              business. Can't find an answer? Contact our support team.
+              business. Can&apos;t find an answer? Contact our support team.
             </p>
           </BlurFade>
         </div>
