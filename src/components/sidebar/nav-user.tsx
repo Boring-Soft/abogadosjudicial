@@ -31,7 +31,15 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/providers/auth-provider";
 
-export function NavUser() {
+interface NavUserProps {
+  user?: {
+    name: string;
+    email: string;
+    avatar?: string | null;
+  };
+}
+
+export function NavUser({ user: propUser }: NavUserProps = {}) {
   const { isMobile } = useSidebar();
   const { signOut, profile, user } = useAuth();
 

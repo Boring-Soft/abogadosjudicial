@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from "@/providers/auth-provider";
-import DashboardButton from "@/components/dashboard/dashboard-button";
+import DashboardButton from "@/components/common/dashboard-button";
 import Link from "next/link";
 
 export function AuthHeader() {

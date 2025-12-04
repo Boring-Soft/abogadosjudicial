@@ -24,14 +24,6 @@ export function PublicFooter() {
               </li>
               <li>
                 <Link
-                  href="/product/text-agents"
-                  className="text-sm leading-6 text-muted-foreground hover:text-foreground"
-                >
-                  AI Text Agents
-                </Link>
-              </li>
-              <li>
-                <Link
                   href="/product/workflow"
                   className="text-sm leading-6 text-muted-foreground hover:text-foreground"
                 >

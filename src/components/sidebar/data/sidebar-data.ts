@@ -1,16 +1,14 @@
 import {
   Home,
-  Phone,
-  PhoneCall,
-  TestTube2,
-  Megaphone,
   Users,
-  MessageSquare,
-  Workflow,
-  Database,
-  Command,
+  FolderKanban,
+  Scale,
+  UserCircle,
+  FileText,
+  Gavel,
 } from "lucide-react";
 import type { SidebarData } from "../types";
+import { UserRole } from "@prisma/client";
 
 export const sidebarData: SidebarData = {
   user: {
@@ -20,72 +18,142 @@ export const sidebarData: SidebarData = {
   },
   teams: [
     {
-      name: "Boring Automation",
-      logo: Command,
+      name: "Sistema Judicial",
+      logo: Scale,
       plan: "Professional",
-    },
-    {
-      name: "My Workspace",
-      logo: Command,
-      plan: "Free",
     },
   ],
   navGroups: [
     {
-      title: "Main",
+      title: "Principal",
       items: [
         {
-          title: "Home",
+          title: "Inicio",
           url: "/dashboard",
           icon: Home,
-        },
-        {
-          title: "Voice Agents",
-          icon: Phone,
-          items: [
-            {
-              title: "Agents",
-              url: "/dashboard/voice-agents/agents",
-              icon: PhoneCall,
-            },
-            {
-              title: "Phone Numbers",
-              url: "/dashboard/voice-agents/phone-numbers",
-              icon: Phone,
-            },
-            {
-              title: "Test Numbers",
-              url: "/dashboard/voice-agents/test-numbers",
-              icon: TestTube2,
-            },
-          ],
-        },
-        {
-          title: "Campaigns",
-          url: "/dashboard/campaigns",
-          icon: Megaphone,
-        },
-        {
-          title: "CRM",
-          url: "/dashboard/crm",
-          icon: Users,
-        },
-        {
-          title: "Text Agents",
-          url: "/dashboard/text-agents",
-          icon: MessageSquare,
-        },
-        {
-          title: "Flow Studio",
-          url: "/dashboard/flow-studio",
-          icon: Workflow,
-        },
-        {
-          title: "Data Studio",
-          url: "/dashboard/data-studio",
-          icon: Database,
         },
       ],
     },
   ],
+};
+
+// Configuración específica para ABOGADO
+export const getSidebarDataForAbogado = (user: { name: string; email: string; avatar?: string | null }): SidebarData => ({
+  user: {
+    name: user.name,
+    email: user.email,
+    avatar: user.avatar || "/avatars/default.jpg",
+  },
+  teams: [
+    {
+      name: "Sistema Judicial",
+      logo: Scale,
+      plan: "Abogado",
+    },
+  ],
+  navGroups: [
+    {
+      title: "Principal",
+      items: [
+        {
+          title: "Inicio",
+          url: "/dashboard",
+          icon: Home,
+        },
+      ],
+    },
+    {
+      title: "Gestión",
+      items: [
+        {
+          title: "Clientes",
+          url: "/dashboard/clientes",
+          icon: Users,
+        },
+        {
+          title: "Procesos",
+          url: "/dashboard/procesos",
+          icon: FolderKanban,
+        },
+      ],
+    },
+    {
+      title: "Cuenta",
+      items: [
+        {
+          title: "Mi Perfil",
+          url: "/dashboard/perfil",
+          icon: UserCircle,
+        },
+      ],
+    },
+  ],
+});
+
+// Configuración específica para JUEZ
+export const getSidebarDataForJuez = (user: { name: string; email: string; avatar?: string | null }): SidebarData => ({
+  user: {
+    name: user.name,
+    email: user.email,
+    avatar: user.avatar || "/avatars/default.jpg",
+  },
+  teams: [
+    {
+      name: "Sistema Judicial",
+      logo: Scale,
+      plan: "Juez",
+    },
+  ],
+  navGroups: [
+    {
+      title: "Principal",
+      items: [
+        {
+          title: "Inicio",
+          url: "/dashboard",
+          icon: Home,
+        },
+      ],
+    },
+    {
+      title: "Gestión Judicial",
+      items: [
+        {
+          title: "Demandas",
+          url: "/dashboard/juez/demandas",
+          icon: FileText,
+        },
+        {
+          title: "Procesos",
+          url: "/dashboard/procesos",
+          icon: FolderKanban,
+        },
+      ],
+    },
+    {
+      title: "Cuenta",
+      items: [
+        {
+          title: "Mi Perfil",
+          url: "/dashboard/juez/perfil",
+          icon: UserCircle,
+        },
+      ],
+    },
+  ],
+});
+
+// Función helper para obtener datos del sidebar según el rol
+export const getSidebarDataByRole = (
+  role: UserRole,
+  user: { name: string; email: string; avatar?: string | null }
+): SidebarData => {
+  switch (role) {
+    case UserRole.ABOGADO:
+      return getSidebarDataForAbogado(user);
+    case UserRole.JUEZ:
+      return getSidebarDataForJuez(user);
+    default:
+      return sidebarData;
+  }
 };

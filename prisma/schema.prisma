@@ -9,27 +9,640 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+// ============================================
+// ENUMS
+// ============================================
 
 enum UserRole {
   USER
   SUPERADMIN
+  ABOGADO
+  JUEZ
 }
 
+enum EstadoProceso {
+  BORRADOR
+  PRESENTADO
+  OBSERVADO
+  RECHAZADO
+  ADMITIDO
+  CITADO
+  CONTESTADO
+  AUDIENCIA_PRELIMINAR
+  AUDIENCIA_COMPLEMENTARIA
+  PARA_SENTENCIA
+  SENTENCIADO
+  APELADO
+  EJECUTORIADO
+  ARCHIVADO
+  CONCILIADO
+}
+
+enum TipoProceso {
+  ORDINARIO
+  EXTRAORDINARIO
+  MONITORIO
+  CAUTELAR
+}
+
+enum MateriaProceso {
+  CIVIL
+  FAMILIAR
+  COMERCIAL
+  LABORAL
+}
+
+enum TipoCitacion {
+  PERSONAL
+  CEDULA
+  EDICTO
+  TACITA
+}
+
+enum EstadoCitacion {
+  PENDIENTE
+  EN_PROCESO
+  EXITOSA
+  FALLIDA
+  TACITA
+}
+
+enum TipoMedidaCautelar {
+  ANOTACION_PREVENTIVA
+  EMBARGO_PREVENTIVO
+  INTERVENCION_JUDICIAL
+  SECUESTRO
+  PROHIBICION_INNOVAR
+  PROHIBICION_CONTRATAR
+}
+
+enum EstadoMedidaCautelar {
+  SOLICITADA
+  ADMITIDA
+  RECHAZADA
+  EJECUTADA
+  LEVANTADA
+}
+
+enum TipoAudiencia {
+  PRELIMINAR
+  COMPLEMENTARIA
+}
+
+enum ModalidadAudiencia {
+  PRESENCIAL
+  VIRTUAL
+}
+
+enum EstadoAudiencia {
+  PROGRAMADA
+  REALIZADA
+  SUSPENDIDA
+  CANCELADA
+}
+
+enum TipoResolucion {
+  PROVIDENCIA
+  AUTO_INTERLOCUTORIO
+  AUTO_DEFINITIVO
+}
+
+enum TipoDocumento {
+  DEMANDA
+  CONTESTACION
+  PRUEBA_DOCUMENTAL
+  RESOLUCION
+  ACTA
+  SENTENCIA
+  ESCRITO_VARIO
+  ANEXO
+  EVIDENCIA_CITACION
+}
+
+enum VisibilidadDocumento {
+  PUBLICO
+  PRIVADO
+}
+
+enum TipoNotificacion {
+  DEMANDA_PRESENTADA
+  DEMANDA_ADMITIDA
+  DEMANDA_OBSERVADA
+  DEMANDA_RECHAZADA
+  CITACION_EXITOSA
+  CONTESTACION_PRESENTADA
+  AUDIENCIA_CONVOCADA
+  RESOLUCION_EMITIDA
+  SENTENCIA_EMITIDA
+  SENTENCIA_EJECUTORIADA
+  PLAZO_PROXIMO_VENCER
+  PLAZO_VENCIDO
+  MEDIDA_CAUTELAR_EJECUTADA
+  MEDIDA_CAUTELAR_VENCIMIENTO
+  DOCUMENTO_SUBIDO
+}
+
+enum EstadoPlazo {
+  ACTIVO
+  CUMPLIDO
+  VENCIDO
+}
+
+enum TipoPlazo {
+  CONTESTACION
+  AUDIENCIA_PRELIMINAR
+  SENTENCIA
+  APELACION
+  MEDIDA_CAUTELAR
+}
+
+// ============================================
+// MODELOS
+// ============================================
+
 model Profile {
-  id            String               @id @default(cuid())
-  userId        String               @unique
-  avatarUrl     String?
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
-  active        Boolean              @default(true)
-  firstName     String?              @map("first_name")
-  lastName      String?              @map("last_name")
-  role          UserRole             @default(USER)
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  active    Boolean  @default(true)
+  firstName String?  @map("first_name")
+  lastName  String?  @map("last_name")
+  role      UserRole @default(USER)
+
+  // Campos específicos para ABOGADO
+  registroProfesional String? @map("registro_profesional")
+  telefono            String?
+  email               String?
+
+  // Campos específicos para JUEZ
+  juzgadoId String?  @map("juzgado_id")
+  juzgado   Juzgado? @relation(fields: [juzgadoId], references: [id])
+
+  // Relaciones
+  clientesRegistrados   Cliente[]            @relation("AbogadoClientes")
+  procesosComoActor     Proceso[]            @relation("AbogadoActor")
+  procesosComoDemandado Proceso[]            @relation("AbogadoDemandado")
+  procesosAsignados     Proceso[]            @relation("JuezAsignado")
+  notificaciones        Notificacion[]
+  logAccesos            LogAccesoDocumento[]
 
   @@index([userId])
+  @@index([registroProfesional])
+  @@index([juzgadoId])
   @@map("profiles")
+}
+
+model Juzgado {
+  id           String   @id @default(cuid())
+  nombre       String
+  ciudad       String
+  departamento String
+  direccion    String?
+  telefono     String?
+  email        String?
+  activo       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relaciones
+  jueces   Profile[]
+  procesos Proceso[]
+
+  @@map("juzgados")
+}
+
+model Cliente {
+  id                String   @id @default(cuid())
+  ci                String
+  nombres           String
+  apellidos         String
+  edad              Int?
+  estadoCivil       String?  @map("estado_civil")
+  profesion         String?
+  domicilioReal     String   @map("domicilio_real")
+  domicilioProcesal String   @map("domicilio_procesal")
+  telefono          String?
+  email             String?
+  fotoUrl           String?  @map("foto_url")
+  activo            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relación con abogado
+  abogadoId String  @map("abogado_id")
+  abogado   Profile @relation("AbogadoClientes", fields: [abogadoId], references: [id])
+
+  // Relaciones con procesos
+  procesosComoActor     Proceso[] @relation("ClienteActor")
+  procesosComoDemandado Proceso[] @relation("ClienteDemandado")
+
+  @@unique([ci, abogadoId])
+  @@index([abogadoId])
+  @@map("clientes")
+}
+
+model Proceso {
+  id          String         @id @default(cuid())
+  nurej       String?        @unique
+  tipoProceso TipoProceso    @map("tipo_proceso")
+  materia     MateriaProceso
+  cuantia     Float?
+  estado      EstadoProceso  @default(BORRADOR)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Juzgado asignado
+  juzgadoId String  @map("juzgado_id")
+  juzgado   Juzgado @relation(fields: [juzgadoId], references: [id])
+
+  // Juez asignado
+  juezId String?  @map("juez_id")
+  juez   Profile? @relation("JuezAsignado", fields: [juezId], references: [id])
+
+  // Actor (demandante)
+  clienteActorId String  @map("cliente_actor_id")
+  clienteActor   Cliente @relation("ClienteActor", fields: [clienteActorId], references: [id])
+
+  abogadoActorId String  @map("abogado_actor_id")
+  abogadoActor   Profile @relation("AbogadoActor", fields: [abogadoActorId], references: [id])
+
+  // Demandado
+  clienteDemandadoId String?  @map("cliente_demandado_id")
+  clienteDemandado   Cliente? @relation("ClienteDemandado", fields: [clienteDemandadoId], references: [id])
+
+  // Datos del demandado (si no es cliente del sistema)
+  demandadoNombres           String? @map("demandado_nombres")
+  demandadoApellidos         String? @map("demandado_apellidos")
+  demandadoCI                String? @map("demandado_ci")
+  demandadoEdad              Int?    @map("demandado_edad")
+  demandadoEstadoCivil       String? @map("demandado_estado_civil")
+  demandadoProfesion         String? @map("demandado_profesion")
+  demandadoDomicilioReal     String? @map("demandado_domicilio_real")
+  demandadoDomicilioProcesal String? @map("demandado_domicilio_procesal")
+
+  abogadoDemandadoId String?  @map("abogado_demandado_id")
+  abogadoDemandado   Profile? @relation("AbogadoDemandado", fields: [abogadoDemandadoId], references: [id])
+
+  // Relaciones
+  demanda           Demanda?
+  citaciones        Citacion[]
+  contestacion      Contestacion?
+  medidasCautelares MedidaCautelar[]
+  audiencias        Audiencia[]
+  resoluciones      Resolucion[]
+  sentencia         Sentencia?
+  documentos        Documento[]
+  notificaciones    Notificacion[]
+  plazos            Plazo[]
+
+  @@index([juzgadoId])
+  @@index([juezId])
+  @@index([abogadoActorId])
+  @@index([abogadoDemandadoId])
+  @@index([estado])
+  @@index([nurej])
+  @@map("procesos")
+}
+
+model Demanda {
+  id        String  @id @default(cuid())
+  procesoId String  @unique @map("proceso_id")
+  proceso   Proceso @relation(fields: [procesoId], references: [id], onDelete: Cascade)
+
+  // Contenido de la demanda (Art. 110)
+  designacionJuez String @map("designacion_juez")
+  objeto          String @db.Text
+  hechos          String @db.Text
+  derecho         String @db.Text
+  petitorio       String @db.Text
+  valorDemanda    Float  @map("valor_demanda")
+  pruebaOfrecida  String @map("prueba_ofrecida") @db.Text
+
+  // Metadata
+  documentoUrl  String  @map("documento_url")
+  documentoHash String  @map("documento_hash")
+  version       Int     @default(1)
+  observaciones String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([procesoId])
+  @@map("demandas")
+}
+
+model Citacion {
+  id        String  @id @default(cuid())
+  procesoId String  @map("proceso_id")
+  proceso   Proceso @relation(fields: [procesoId], references: [id], onDelete: Cascade)
+
+  tipoCitacion TipoCitacion   @map("tipo_citacion")
+  estado       EstadoCitacion @default(PENDIENTE)
+
+  // Cédula de citación
+  cedulaUrl String? @map("cedula_url")
+
+  // Registro de intentos
+  intentos Json?
+
+  // Citación exitosa
+  fechaCitacion DateTime? @map("fecha_citacion")
+  evidenciaUrl  String?   @map("evidencia_url")
+  observaciones String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([procesoId])
+  @@index([estado])
+  @@map("citaciones")
+}
+
+model Contestacion {
+  id        String  @id @default(cuid())
+  procesoId String  @unique @map("proceso_id")
+  proceso   Proceso @relation(fields: [procesoId], references: [id], onDelete: Cascade)
+
+  // Tipo de contestación
+  esAllanamiento    Boolean @default(false) @map("es_allanamiento")
+  tieneExcepciones  Boolean @default(false) @map("tiene_excepciones")
+  tieneReconvencion Boolean @default(false) @map("tiene_reconvencion")
+
+  // Contenido
+  admisionHechos Json?   @map("admision_hechos")
+  fundamentacion String? @db.Text
+  pruebaDescargo String? @map("prueba_descargo") @db.Text
+  petitorio      String? @db.Text
+
+  // Excepciones previas
+  tipoExcepcion           String? @map("tipo_excepcion")
+  fundamentacionExcepcion String? @map("fundamentacion_excepcion") @db.Text
+
+  // Reconvención
+  objetoReconvencion    String? @map("objeto_reconvencion") @db.Text
+  hechosReconvencion    String? @map("hechos_reconvencion") @db.Text
+  derechoReconvencion   String? @map("derecho_reconvencion") @db.Text
+  petitorioReconvencion String? @map("petitorio_reconvencion") @db.Text
+
+  // Metadata
+  documentoUrl  String @map("documento_url")
+  documentoHash String @map("documento_hash")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([procesoId])
+  @@map("contestaciones")
+}
+
+model MedidaCautelar {
+  id        String  @id @default(cuid())
+  procesoId String  @map("proceso_id")
+  proceso   Proceso @relation(fields: [procesoId], references: [id], onDelete: Cascade)
+
+  tipo   TipoMedidaCautelar
+  estado EstadoMedidaCautelar @default(SOLICITADA)
+
+  // Solicitud
+  fundamentacion        String @db.Text
+  bienesAfectados       String @map("bienes_afectados") @db.Text
+  documentoSolicitudUrl String @map("documento_solicitud_url")
+
+  // Ejecución
+  fechaEjecucion   DateTime? @map("fecha_ejecucion")
+  fechaVencimiento DateTime? @map("fecha_vencimiento")
+  documentoAutoUrl String?   @map("documento_auto_url")
+
+  // Observaciones
+  motivoRechazo       String? @map("motivo_rechazo") @db.Text
+  motivoLevantamiento String? @map("motivo_levantamiento") @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([procesoId])
+  @@index([estado])
+  @@index([fechaVencimiento])
+  @@map("medidas_cautelares")
+}
+
+model Audiencia {
+  id        String  @id @default(cuid())
+  procesoId String  @map("proceso_id")
+  proceso   Proceso @relation(fields: [procesoId], references: [id], onDelete: Cascade)
+
+  tipo      TipoAudiencia
+  modalidad ModalidadAudiencia
+  estado    EstadoAudiencia    @default(PROGRAMADA)
+
+  // Programación
+  fechaHora           DateTime @map("fecha_hora")
+  linkGoogleMeet      String?  @map("link_google_meet")
+  autoConvocatoriaUrl String?  @map("auto_convocatoria_url")
+
+  // Realización
+  fechaInicio DateTime? @map("fecha_inicio")
+  fechaCierre DateTime? @map("fecha_cierre")
+  asistentes  Json?
+
+  // Resultados
+  huboConciliacion    Boolean? @map("hubo_conciliacion")
+  acuerdoConciliacion String?  @map("acuerdo_conciliacion") @db.Text
+  objetoProceso       String?  @map("objeto_proceso") @db.Text
+  pruebasAdmitidas    Json?    @map("pruebas_admitidas")
+
+  // Acta
+  actaUrl  String? @map("acta_url")
+  actaHash String? @map("acta_hash")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([procesoId])
+  @@index([fechaHora])
+  @@index([estado])
+  @@map("audiencias")
+}
+
+model Resolucion {
+  id        String  @id @default(cuid())
+  procesoId String  @map("proceso_id")
+  proceso   Proceso @relation(fields: [procesoId], references: [id], onDelete: Cascade)
+
+  tipo   TipoResolucion
+  titulo String
+
+  // Contenido
+  vistos       String? @db.Text
+  considerando String? @db.Text
+  porTanto     String  @map("por_tanto") @db.Text
+
+  // Metadata
+  documentoUrl      String    @map("documento_url")
+  documentoHash     String    @map("documento_hash")
+  firmadoPor        String    @map("firmado_por")
+  fechaEmision      DateTime  @map("fecha_emision")
+  fechaNotificacion DateTime? @map("fecha_notificacion")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([procesoId])
+  @@index([fechaEmision])
+  @@map("resoluciones")
+}
+
+model Sentencia {
+  id        String  @id @default(cuid())
+  procesoId String  @unique @map("proceso_id")
+  proceso   Proceso @relation(fields: [procesoId], references: [id], onDelete: Cascade)
+
+  // Estructura Art. 213
+  // 1. Encabezamiento (auto-llenado del proceso)
+
+  // 2. Narrativa
+  resumenDemanda      String @map("resumen_demanda") @db.Text
+  resumenContestacion String @map("resumen_contestacion") @db.Text
+  tramitesProceso     String @map("tramites_proceso") @db.Text
+  pruebasPresentadas  String @map("pruebas_presentadas") @db.Text
+
+  // 3. Motiva
+  analisisPruebas      String  @map("analisis_pruebas") @db.Text
+  valoracionPruebas    String  @map("valoracion_pruebas") @db.Text
+  aplicacionDerecho    String  @map("aplicacion_derecho") @db.Text
+  razonamientoJuridico String  @map("razonamiento_juridico") @db.Text
+  jurisprudencia       String? @db.Text
+
+  // 4. Resolutiva
+  decision String // ADMITE, RECHAZA, ADMITE_PARCIALMENTE
+  condena  String? @db.Text
+  costas   String  @db.Text
+
+  // Metadata
+  documentoUrl      String    @map("documento_url")
+  documentoHash     String    @map("documento_hash")
+  firmadoPor        String    @map("firmado_por")
+  fechaEmision      DateTime  @map("fecha_emision")
+  fechaNotificacion DateTime? @map("fecha_notificacion")
+  fechaEjecutoria   DateTime? @map("fecha_ejecutoria")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([procesoId])
+  @@index([fechaEmision])
+  @@index([fechaEjecutoria])
+  @@map("sentencias")
+}
+
+model Documento {
+  id        String  @id @default(cuid())
+  procesoId String  @map("proceso_id")
+  proceso   Proceso @relation(fields: [procesoId], references: [id], onDelete: Cascade)
+
+  nombre      String
+  tipo        TipoDocumento
+  descripcion String?
+  visibilidad VisibilidadDocumento @default(PUBLICO)
+
+  // Storage
+  url      String
+  hash     String
+  mimeType String @map("mime_type")
+  tamanio  Int // en bytes
+
+  // Metadata
+  subidoPor String @map("subido_por")
+  version   Int    @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  logAccesos LogAccesoDocumento[]
+
+  @@index([procesoId])
+  @@index([tipo])
+  @@index([subidoPor])
+  @@map("documentos")
+}
+
+model Notificacion {
+  id        String  @id @default(cuid())
+  usuarioId String  @map("usuario_id")
+  usuario   Profile @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  procesoId String?  @map("proceso_id")
+  proceso   Proceso? @relation(fields: [procesoId], references: [id], onDelete: Cascade)
+
+  tipo      TipoNotificacion
+  titulo    String
+  mensaje   String           @db.Text
+  accionUrl String?          @map("accion_url")
+
+  leida      Boolean   @default(false)
+  fechaLeida DateTime? @map("fecha_leida")
+
+  createdAt DateTime @default(now())
+
+  @@index([usuarioId])
+  @@index([procesoId])
+  @@index([leida])
+  @@index([createdAt])
+  @@map("notificaciones")
+}
+
+model Plazo {
+  id        String  @id @default(cuid())
+  procesoId String  @map("proceso_id")
+  proceso   Proceso @relation(fields: [procesoId], references: [id], onDelete: Cascade)
+
+  tipo   TipoPlazo
+  estado EstadoPlazo @default(ACTIVO)
+
+  fechaInicio      DateTime @map("fecha_inicio")
+  fechaVencimiento DateTime @map("fecha_vencimiento")
+  diasHabiles      Int      @map("dias_habiles")
+
+  // Alertas
+  alertasEnviadas Json? @map("alertas_enviadas")
+
+  // Destinatario (userId del profile)
+  destinatario String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([procesoId])
+  @@index([estado])
+  @@index([fechaVencimiento])
+  @@index([destinatario])
+  @@map("plazos")
+}
+
+model LogAccesoDocumento {
+  id          String    @id @default(cuid())
+  documentoId String    @map("documento_id")
+  documento   Documento @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+
+  usuarioId String  @map("usuario_id")
+  usuario   Profile @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  accion    String // VISUALIZACION, DESCARGA
+  ip        String?
+  userAgent String? @map("user_agent")
+
+  createdAt DateTime @default(now())
+
+  @@index([documentoId])
+  @@index([usuarioId])
+  @@index([createdAt])
+  @@map("log_acceso_documentos")
 }

@@ -5,7 +5,8 @@ import { cookies } from "next/headers";
 // PUT: Update user password
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
     // Get the current user's session
     const {

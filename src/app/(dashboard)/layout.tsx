@@ -1,4 +1,4 @@
-import { DashboardLayoutClient } from "@/components/dashboard/dashboard-layout-client";
+import { DashboardLayoutClient } from "@/components/layouts/dashboard-layout-client";
 
 export default async function DashboardLayout({
   children,

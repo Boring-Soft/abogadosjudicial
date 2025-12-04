@@ -14,11 +14,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useAuth } from "@/providers/auth-provider";
 import { Badge } from "@/components/ui/badge";
 import { UserRole } from "@prisma/client";
+import { toast } from "@/components/ui/use-toast";
 
 export function ProfileDropdown() {
   const { profile, user, isLoading } = useCurrentUser();
+  const { signOut } = useAuth();
 
   if (isLoading) {
     return (
@@ -110,8 +113,19 @@ export function ProfileDropdown() {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={async () => {
-            await fetch("/api/auth/signout", { method: "POST" });
-            window.location.href = "/login";
+            try {
+              await signOut();
+              toast({
+                title: "Signed out",
+                description: "You have been successfully signed out.",
+              });
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "Failed to sign out. Please try again.",
+                variant: "destructive",
+              });
+            }
           }}
         >
           <LogOut className="mr-2 h-4 w-4" />

@@ -1,13 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [
-      // Add your Supabase project domain
-      "swfgvfhpmicwptupjyko.supabase.co",
-      "xqakfzhkeiongvzgbhji.supabase.co",
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'swfgvfhpmicwptupjyko.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'xqakfzhkeiongvzgbhji.supabase.co',
+      },
     ],
   },
   // output: "standalone", // Commented out for Vercel deployment
+  turbopack: {},
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.externals.push('_http_common');

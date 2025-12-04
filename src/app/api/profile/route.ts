@@ -2,11 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
+import { z } from "zod";
+import { UserRole } from "@prisma/client";
+
+const updateProfileSchema = z.object({
+  firstName: z.string().min(2).max(30).optional(),
+  lastName: z.string().min(2).max(30).optional(),
+  telefono: z.string().min(7).optional().nullable(),
+  registroProfesional: z.string().min(5).max(20).optional().nullable(),
+  avatarUrl: z.string().url().optional().nullable(),
+});
 
 // GET: Fetch profile for the current authenticated user
 export async function GET() {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
     // Get the current user's session
     const {
@@ -23,13 +34,16 @@ export async function GET() {
     // Fetch profile from the database
     const profile = await prisma.profile.findUnique({
       where: { userId },
+      include: {
+        juzgado: true,
+      },
     });
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    return NextResponse.json(profile);
+    return NextResponse.json({ profile });
   } catch (error) {
     console.error("Error fetching profile:", error);
     return NextResponse.json(
@@ -42,7 +56,8 @@ export async function GET() {
 // PUT: Update profile for the current authenticated user
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
     // Get the current user's session
     const {
@@ -55,21 +70,63 @@ export async function PUT(request: NextRequest) {
     }
 
     const userId = session.user.id;
-    const data = await request.json();
-    const { firstName, lastName, avatarUrl, active } = data;
+    const body = await request.json();
+
+    // Validate request body
+    const validation = updateProfileSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: "Validation error",
+          details: validation.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const data = validation.data;
+
+    // Get current profile to check role
+    const currentProfile = await prisma.profile.findUnique({
+      where: { userId },
+    });
+
+    if (!currentProfile) {
+      return NextResponse.json(
+        { error: "Profile not found" },
+        { status: 404 }
+      );
+    }
+
+    // Build update data
+    const updateData: any = {};
+
+    if (data.firstName !== undefined) updateData.firstName = data.firstName;
+    if (data.lastName !== undefined) updateData.lastName = data.lastName;
+    if (data.telefono !== undefined) updateData.telefono = data.telefono;
+    if (data.avatarUrl !== undefined) updateData.avatarUrl = data.avatarUrl;
+
+    // Only allow updating registroProfesional for ABOGADO role
+    if (
+      data.registroProfesional !== undefined &&
+      currentProfile.role === UserRole.ABOGADO
+    ) {
+      updateData.registroProfesional = data.registroProfesional;
+    }
 
     // Update profile in the database
     const updatedProfile = await prisma.profile.update({
       where: { userId },
-      data: {
-        firstName,
-        lastName,
-        avatarUrl,
-        active,
+      data: updateData,
+      include: {
+        juzgado: true,
       },
     });
 
-    return NextResponse.json(updatedProfile);
+    return NextResponse.json({
+      message: "Profile updated successfully",
+      profile: updatedProfile,
+    });
   } catch (error) {
     console.error("Error updating profile:", error);
     return NextResponse.json(
@@ -82,6 +139,7 @@ export async function PUT(request: NextRequest) {
 // POST: Create a new profile for the current authenticated user
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
     const data = await request.json();
     const { userId, firstName, lastName, avatarUrl } = data;
 
@@ -115,7 +173,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Normal flow requiring authentication
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
     // Get the current user's session
     const {

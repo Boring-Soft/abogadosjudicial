@@ -1,0 +1,33 @@
+import { createHash } from 'crypto';
+
+/**
+ * Server-side utility functions for password hashing
+ * Uses Node.js crypto module
+ */
+
+/**
+ * Hashes a password using SHA-256 on the server
+ * @param password The password string to hash
+ * @returns The hashed password string
+ */
+export function hashPassword(password: string): string {
+  const hash = createHash('sha256');
+  hash.update(password);
+  return hash.digest('hex');
+}
+
+/**
+ * Salted password hash function for added security (server-side)
+ * Combines the password with a user-specific value (like email) before hashing
+ *
+ * @param password The user's plain text password
+ * @param salt A unique value to combine with the password (e.g., user's email)
+ * @returns The salted and hashed password string
+ */
+export function saltAndHashPassword(password: string, salt: string): string {
+  // Combine password with salt (same format as client)
+  const saltedPassword = `${password}:${salt}`;
+
+  // Hash the salted password
+  return hashPassword(saltedPassword);
+}

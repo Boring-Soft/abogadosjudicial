@@ -54,9 +54,6 @@ export function PublicHeader() {
                 <Link href="/product/ai-calls">AI Calls</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/product/text-agents">AI Text Agents</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
                 <Link href="/product/workflow">Workflow Automation</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
@@ -160,13 +157,6 @@ export function PublicHeader() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 AI Calls
-              </Link>
-              <Link
-                href="/product/text-agents"
-                className="block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-foreground hover:bg-muted"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                AI Text Agents
               </Link>
             </div>
 

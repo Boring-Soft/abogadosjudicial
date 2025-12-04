@@ -8,7 +8,8 @@ import type { UserRole, Prisma } from "@prisma/client";
 export async function GET(req: NextRequest) {
   try {
     // Check authentication
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     const {
       data: { session },
       error: sessionError,
