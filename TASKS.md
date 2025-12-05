@@ -342,42 +342,46 @@
 - [x] Cambiar estado a PARA_SENTENCIA
 - [x] Iniciar plazo automático de 20 días para sentencia
 
-### T013: Módulo de Resoluciones (JUEZ)
+### T013: Módulo de Resoluciones (JUEZ) ✅ (COMPLETADO)
 
 #### Editor de Resoluciones
-- [ ] Crear página de nueva resolución (/dashboard/juez/procesos/[nurej]/resolucion/nueva)
-- [ ] Selección de tipo: Providencia, Auto Interlocutorio, Auto Definitivo
-- [ ] Selección de plantilla (opcional)
-- [ ] Rich Text Editor con secciones: Vistos, Considerando, Por Tanto
-- [ ] Funcionalidad de insertar citas de ley (base de datos de artículos)
-- [ ] Funcionalidad de insertar referencias a actos procesales
-- [ ] Validación de estructura según tipo
-- [ ] Preview de PDF antes de firmar
+- [x] Crear página de nueva resolución (/dashboard/juez/procesos/[id]/resolucion)
+- [x] Selección de tipo: Providencia, Auto Interlocutorio, Auto Definitivo
+- [x] Selección de plantilla (opcional) con aplicación automática
+- [x] Rich Text Editor simplificado con secciones: Vistos, Considerando, Por Tanto
+- [ ] Funcionalidad de insertar citas de ley (base de datos de artículos - TODO: futuro)
+- [ ] Funcionalidad de insertar referencias a actos procesales (TODO: futuro)
+- [x] Validación de estructura según tipo (Providencia, Auto Interlocutorio, Auto Definitivo)
+- [ ] Preview de PDF antes de firmar (TODO: requiere generación de PDF)
 
 #### Emisión de Resolución
-- [ ] Botón "Solicitar Firma Digital"
-- [ ] Generar hash SHA-256 del documento
-- [ ] Firmar con certificado interno
-- [ ] Generar PDF sellado con marca de agua
-- [ ] Almacenar resolución en expediente (inmutable)
-- [ ] Generar notificación in-app automática a ABOGADOS
-- [ ] Registrar fecha de notificación
+- [x] Emisión automática con firma digital al crear
+- [x] Generar hash SHA-256 del documento
+- [x] Firmar con certificado interno (metadata firmadoPor)
+- [ ] Generar PDF sellado con marca de agua (TODO: requiere biblioteca PDF)
+- [x] Almacenar resolución en expediente (inmutable)
+- [x] Generar notificación in-app automática a ABOGADOS
+- [x] Registrar fecha de notificación (automática al crear)
 
 #### Gestión de Plantillas
-- [ ] Página de gestión de plantillas (/dashboard/juez/plantillas)
-- [ ] Crear nueva plantilla
-- [ ] Variables dinámicas: {actor}, {demandado}, {nurej}, {fecha}
-- [ ] Editar plantillas existentes
-- [ ] Compartir plantillas con otros jueces del juzgado
+- [x] Página de gestión de plantillas (/dashboard/juez/plantillas)
+- [x] Crear nueva plantilla con formulario completo
+- [x] Variables dinámicas: {actor}, {demandado}, {nurej}, {fecha}, {juzgado}, {juez}, {objeto}, {cuantia}
+- [x] Editar plantillas existentes
+- [x] Compartir plantillas con otros jueces del juzgado (opción en formulario)
+- [x] Contador de usos de plantillas
+- [x] Filtros por tipo de resolución
+- [x] Vista separada de plantillas propias y compartidas
 
 #### Vista de Resoluciones (ABOGADO)
-- [ ] En expediente, sección "Resoluciones"
-- [ ] Lista de todas las resoluciones: fecha, tipo, título, estado
-- [ ] Botón "Descargar PDF"
-- [ ] Notificación cuando se emite nueva resolución
-- [ ] Vista previa de tipo de resolución
-- [ ] Ver fecha de notificación (para cómputo de plazos)
-- [ ] Si es apelable: días restantes para apelar + botón "Presentar Recurso de Apelación"
+- [x] En expediente, sección "Resoluciones" integrada
+- [x] Lista de todas las resoluciones: fecha, tipo, título, hash
+- [x] Diálogo de vista detallada con todas las secciones
+- [ ] Botón "Descargar PDF" (TODO: requiere generación de PDF)
+- [x] Notificación cuando se emite nueva resolución (automática vía API)
+- [x] Vista previa de tipo de resolución (badges con colores)
+- [x] Ver fecha de notificación (para cómputo de plazos)
+- [ ] Si es apelable: días restantes para apelar + botón "Presentar Recurso de Apelación" (TODO: T014)
 
 ### T014: Módulo de Sentencias (Art. 213)
 
@@ -784,6 +788,24 @@
 - `src/components/procesos/expediente-digital.tsx` - Expediente digital con tabs (Información General, Documentos, Plazos, Audiencias, Resoluciones, Línea de Tiempo)
 - **Completado**: CRUD de procesos, wizard de creación 5 pasos, generación de NUREJ, vista de procesos con filtros, expediente digital con tabs, control de acceso por rol
 - **Pendiente**: Vista Kanban específica para JUEZ, indicadores de urgencia, sección de notificaciones en expediente, vista diferenciada ABOGADO/JUEZ con comentarios internos
+
+### T013: Módulo de Resoluciones (JUEZ)
+- `prisma/schema.prisma` - Modelo PlantillaResolucion agregado con campos: tipo, titulo, vistos, considerando, porTanto, creadoPor, compartida, juzgadoId, descripcion, activa, usosCantidad
+- `src/types/judicial/index.ts` - Tipos PlantillaResolucionData, CreatePlantillaResolucionInput, UpdatePlantillaResolucionInput agregados
+- `src/lib/validations/resolucion.ts` - Schemas Zod para resoluciones y plantillas, validación por tipo, variables dinámicas, función procesarVariablesPlantilla
+- `src/lib/utils.ts` - Función generateSHA256Hash para firma digital, formatDate, formatDateTime
+- `src/app/api/resoluciones/route.ts` - API routes GET (listar con filtros) y POST (crear con validación, hash SHA-256, notificaciones automáticas)
+- `src/app/api/resoluciones/[id]/route.ts` - API routes GET (obtener una), PUT (actualizar metadata), DELETE (eliminar solo borradores recientes)
+- `src/app/api/plantillas-resolucion/route.ts` - API routes GET (listar propias y compartidas) y POST (crear plantilla)
+- `src/app/api/plantillas-resolucion/[id]/route.ts` - API routes GET, PUT (editar), DELETE (eliminar), PATCH (incrementar contador de usos)
+- `src/app/(dashboard)/dashboard/juez/plantillas/page.tsx` - Página de gestión de plantillas con tabs por tipo, filtros, cards de plantillas propias y compartidas
+- `src/app/(dashboard)/dashboard/juez/procesos/[id]/resolucion/page.tsx` - Página para emitir resolución con editor, validaciones, preview de proceso, emisión con firma
+- `src/components/resoluciones/create-plantilla-dialog.tsx` - Diálogo para crear plantilla con formulario completo, variables dinámicas, opción de compartir
+- `src/components/resoluciones/edit-plantilla-dialog.tsx` - Diálogo para editar plantilla existente con todos los campos
+- `src/components/resoluciones/resolucion-editor.tsx` - Editor de resolución con secciones (Vistos, Considerando, Por Tanto), selección de tipo, carga de plantillas, aplicación automática con variables
+- `src/components/resoluciones/resoluciones-list.tsx` - Componente para listar resoluciones en expediente, cards con badges de tipo, diálogo de vista detallada completa
+- **Completado**: Sistema completo de resoluciones y plantillas, CRUD de resoluciones con validaciones por tipo, gestión de plantillas con compartición, editor con variables dinámicas, firma digital SHA-256, notificaciones automáticas, vista integrada en expediente
+- **Pendiente**: Generación de PDF (requiere biblioteca PDF), insertar citas de ley (requiere base de datos de artículos), preview de PDF, descarga de resoluciones, cálculo de días para apelación
 
 ---
 

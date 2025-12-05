@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { UserRole, EstadoProceso } from "@prisma/client";
 import type { ProcesoWithRelations } from "@/types/judicial";
+import { ResolucionesList } from "@/components/resoluciones/resoluciones-list";
 
 const ESTADO_LABELS: Record<EstadoProceso, string> = {
   [EstadoProceso.BORRADOR]: "Borrador",
@@ -458,34 +459,10 @@ export function ExpedienteDigital({ procesoId, userRole }: ExpedienteDigitalProp
         </TabsContent>
 
         <TabsContent value="resoluciones">
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Resoluciones</h3>
-            {proceso.resoluciones && proceso.resoluciones.length > 0 ? (
-              <div className="space-y-2">
-                {proceso.resoluciones.map((resolucion: any) => (
-                  <div
-                    key={resolucion.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium">{resolucion.titulo}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {resolucion.tipo} -{" "}
-                        {new Date(resolucion.fechaEmision).toLocaleDateString("es-BO")}
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      Ver
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                No hay resoluciones emitidas
-              </p>
-            )}
-          </Card>
+          <ResolucionesList
+            procesoId={proceso.id}
+            isJuez={userRole === UserRole.JUEZ}
+          />
         </TabsContent>
 
         <TabsContent value="timeline">

@@ -499,6 +499,32 @@ model Resolucion {
   @@map("resoluciones")
 }
 
+model PlantillaResolucion {
+  id   String @id @default(cuid())
+  tipo TipoResolucion
+
+  titulo       String
+  vistos       String? @db.Text
+  considerando String? @db.Text
+  porTanto     String  @map("por_tanto") @db.Text
+
+  // Metadata
+  creadoPor    String   @map("creado_por")
+  compartida   Boolean  @default(false)
+  juzgadoId    String?  @map("juzgado_id")
+  descripcion  String?  @db.Text
+  activa       Boolean  @default(true)
+  usosCantidad Int      @default(0) @map("usos_cantidad")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tipo])
+  @@index([creadoPor])
+  @@index([juzgadoId])
+  @@map("plantillas_resolucion")
+}
+
 model Sentencia {
   id        String  @id @default(cuid())
   procesoId String  @unique @map("proceso_id")

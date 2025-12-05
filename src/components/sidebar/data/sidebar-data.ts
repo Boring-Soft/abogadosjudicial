@@ -7,6 +7,7 @@ import {
   FileText,
   Gavel,
   Calendar,
+  FileStack,
 } from "lucide-react";
 import type { SidebarData } from "../types";
 import { UserRole } from "@prisma/client";
@@ -138,6 +139,11 @@ export const getSidebarDataForJuez = (user: { name: string; email: string; avata
           title: "Audiencias",
           url: "/dashboard/audiencias",
           icon: Calendar,
+        },
+        {
+          title: "Plantillas",
+          url: "/dashboard/juez/plantillas",
+          icon: FileStack,
         },
       ],
     },

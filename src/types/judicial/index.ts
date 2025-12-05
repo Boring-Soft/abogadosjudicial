@@ -300,6 +300,42 @@ export interface CreateResolucionInput {
 }
 
 // ============================================
+// Plantilla Resolucion Types
+// ============================================
+
+export interface PlantillaResolucionData {
+  id: string;
+  tipo: TipoResolucion;
+  titulo: string;
+  vistos: string | null;
+  considerando: string | null;
+  porTanto: string;
+  creadoPor: string;
+  compartida: boolean;
+  juzgadoId: string | null;
+  descripcion: string | null;
+  activa: boolean;
+  usosCantidad: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreatePlantillaResolucionInput {
+  tipo: TipoResolucion;
+  titulo: string;
+  vistos?: string;
+  considerando?: string;
+  porTanto: string;
+  descripcion?: string;
+  compartida?: boolean;
+}
+
+export interface UpdatePlantillaResolucionInput extends Partial<CreatePlantillaResolucionInput> {
+  id: string;
+  activa?: boolean;
+}
+
+// ============================================
 // Sentencia Types (Art. 213)
 // ============================================
 
