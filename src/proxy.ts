@@ -1,46 +1,39 @@
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Define protected routes and their required roles
-const PROTECTED_ROUTES = {
-  // Rutas de ABOGADO
-  "/dashboard/clientes": ["ABOGADO"],
-  "/dashboard/procesos": ["ABOGADO", "JUEZ"],
-  "/dashboard/demandas": ["ABOGADO"],
-  "/dashboard/audiencias": ["ABOGADO", "JUEZ"],
-  "/dashboard/plazos": ["ABOGADO", "JUEZ"],
-
-  // Rutas de JUEZ
+// Define protected routes and their required roles (order matters - most specific first)
+const PROTECTED_ROUTES: Record<string, string[]> = {
+  // Rutas de JUEZ (más específicas primero)
+  "/dashboard/juez/demandas": ["JUEZ"],
+  "/dashboard/juez/perfil": ["JUEZ"],
   "/dashboard/juez": ["JUEZ"],
 
-  // Rutas comunes (cualquier usuario autenticado)
-  "/dashboard": ["USER", "ABOGADO", "JUEZ", "SUPERADMIN"],
+  // Rutas de ABOGADO (más específicas primero)
+  "/dashboard/clientes": ["ABOGADO"],
+  "/dashboard/demandas": ["ABOGADO"],
+  "/dashboard/procesos": ["ABOGADO", "JUEZ"],
+  "/dashboard/audiencias": ["ABOGADO", "JUEZ"],
+  "/dashboard/plazos": ["ABOGADO", "JUEZ"],
+  "/dashboard/perfil": ["USER", "ABOGADO", "JUEZ", "SUPERADMIN"],
+
+  // Rutas comunes
   "/settings": ["USER", "ABOGADO", "JUEZ", "SUPERADMIN"],
 };
 
 export async function proxy(req: NextRequest) {
-  const res = NextResponse.next();
-
-  // Create Supabase client with explicit env vars for Next.js 16
-  const supabase = createMiddlewareClient({
-    req,
-    res,
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  let response = NextResponse.next({
+    request: {
+      headers: req.headers,
+    },
   });
-
-  // Get the session
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
 
   const { pathname } = req.nextUrl;
 
-  // Allow public routes
+  // Allow public routes and API routes
   if (
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api") ||
     pathname.startsWith("/auth") ||
     pathname.startsWith("/sign-in") ||
     pathname.startsWith("/sign-up") ||
@@ -49,39 +42,91 @@ export async function proxy(req: NextRequest) {
     pathname.startsWith("/verify-email") ||
     pathname.startsWith("/magic-link") ||
     pathname === "/" ||
-    pathname === "/pricing"
+    pathname === "/pricing" ||
+    pathname === "/test-page"
   ) {
-    return res;
+    return response;
   }
 
+  // Create Supabase client for middleware
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            req.cookies.set(name, value)
+          );
+          response = NextResponse.next({
+            request: req,
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  // Use getUser() instead of getSession() for security
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
   // Redirect to sign-in if not authenticated
-  if (!session) {
+  if (error || !user) {
     const redirectUrl = new URL("/sign-in", req.url);
     redirectUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Check role-based access
-  const userRole = await getUserRole(session.user.id, supabase);
+  // Get user role
+  const userRole = await getUserRole(user.id, supabase);
 
-  // Check if the route requires specific roles
+  if (!userRole) {
+    console.error("User role not found for user:", user.id);
+    return NextResponse.redirect(new URL("/sign-in", req.url));
+  }
+
+  // Handle /dashboard base route - redirect to role-specific dashboard
+  if (pathname === "/dashboard") {
+    const dashboardUrl = getDashboardForRole(userRole);
+    if (dashboardUrl !== "/dashboard") {
+      return NextResponse.redirect(new URL(dashboardUrl, req.url));
+    }
+    // If role is USER or ABOGADO, allow access to /dashboard
+    return response;
+  }
+
+  // Check role-based access for protected routes
+  // Check from most specific to least specific
   for (const [route, allowedRoles] of Object.entries(PROTECTED_ROUTES)) {
     if (pathname.startsWith(route)) {
-      if (!userRole || !allowedRoles.includes(userRole)) {
+      if (!allowedRoles.includes(userRole)) {
         // Redirect to appropriate dashboard based on role
         const dashboardUrl = getDashboardForRole(userRole);
         return NextResponse.redirect(new URL(dashboardUrl, req.url));
       }
+      // User has access, return response
+      return response;
     }
   }
 
-  return res;
+  return response;
 }
 
 /**
- * Get user role from Supabase/Prisma
+ * Get user role from Supabase
  */
-async function getUserRole(userId: string, supabase: any): Promise<string | null> {
+async function getUserRole(
+  userId: string,
+  supabase: any
+): Promise<string | null> {
   try {
     // Query the profile table to get the user's role
     const { data, error } = await supabase

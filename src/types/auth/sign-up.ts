@@ -10,46 +10,51 @@ const baseSignUpSchemaFields = {
   confirmPassword: z.string(),
 };
 
-// Schema general para registro (USER)
-export const signUpFormSchema = z.object({
+// Schema base sin refine
+const userSchema = z.object({
   ...baseSignUpSchemaFields,
   role: z.literal(UserRole.USER).default(UserRole.USER),
-})
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Las contraseñas no coinciden",
-    path: ["confirmPassword"],
-  });
+});
 
-// Schema extendido para ABOGADO
-export const abogadoSignUpSchema = z.object({
+const abogadoSchemaBase = z.object({
   ...baseSignUpSchemaFields,
   role: z.literal(UserRole.ABOGADO),
   registroProfesional: z.string().min(5, "Registro profesional debe tener al menos 5 caracteres").max(20),
   telefono: z.string().min(7, "Teléfono debe tener al menos 7 dígitos").optional(),
-})
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Las contraseñas no coinciden",
-    path: ["confirmPassword"],
-  });
+});
 
-// Schema extendido para JUEZ (solo admin puede crear)
-export const juezSignUpSchema = z.object({
+const juezSchemaBase = z.object({
   ...baseSignUpSchemaFields,
   role: z.literal(UserRole.JUEZ),
   juzgadoId: z.string().min(1, "Debe seleccionar un juzgado"),
   telefono: z.string().min(7, "Teléfono debe tener al menos 7 dígitos").optional(),
-})
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Las contraseñas no coinciden",
-    path: ["confirmPassword"],
-  });
+});
 
 // Schema unificado que valida según el rol
 export const dynamicSignUpSchema = z.discriminatedUnion("role", [
-  signUpFormSchema,
-  abogadoSignUpSchema,
-  juezSignUpSchema,
-]);
+  userSchema,
+  abogadoSchemaBase,
+  juezSchemaBase,
+]).refine((data) => data.password === data.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"],
+});
+
+// Schemas individuales con refine para uso en formularios
+export const signUpFormSchema = userSchema.refine((data) => data.password === data.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"],
+});
+
+export const abogadoSignUpSchema = abogadoSchemaBase.refine((data) => data.password === data.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"],
+});
+
+export const juezSignUpSchema = juezSchemaBase.refine((data) => data.password === data.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"],
+});
 
 export type SignUpFormData = z.infer<typeof signUpFormSchema>;
 export type AbogadoSignUpFormData = z.infer<typeof abogadoSignUpSchema>;

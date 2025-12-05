@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import type { User, Session } from "@supabase/auth-helpers-nextjs";
+import { createBrowserClient } from "@supabase/ssr";
+import type { User, Session } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import type { Profile } from "@/types/profile";
 
@@ -48,7 +48,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   let supabase = null;
   try {
     if (hasSupabaseCredentials) {
-      supabase = createClientComponentClient();
+      supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
     }
   } catch {
     console.warn("Supabase client creation failed. Running without authentication.");
@@ -117,9 +120,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password,
     });
     if (error) throw error;
+
+    // Fetch profile to get user role
     if (data.user) {
-      await fetchProfile(data.user.id);
+      try {
+        const response = await fetch(`/api/profile/${data.user.id}`);
+        if (response.ok) {
+          const profileData = await response.json();
+          setProfile(profileData.profile);
+
+          // Redirect based on role
+          const role = profileData.profile?.role;
+          if (role === "JUEZ") {
+            router.push("/dashboard/juez");
+          } else {
+            router.push("/dashboard");
+          }
+          return;
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
     }
+
+    // Default redirect if profile fetch fails
     router.push("/dashboard");
   };
 

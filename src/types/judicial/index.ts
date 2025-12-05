@@ -135,6 +135,11 @@ export interface ProcesoData {
   demandadoNombres: string | null;
   demandadoApellidos: string | null;
   demandadoCI: string | null;
+  demandadoEdad: number | null;
+  demandadoEstadoCivil: string | null;
+  demandadoProfesion: string | null;
+  demandadoDomicilioReal: string | null;
+  demandadoDomicilioProcesal: string | null;
   abogadoDemandadoId: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -146,6 +151,14 @@ export interface ProcesoWithRelations extends ProcesoData {
   abogadoActor: ProfileData;
   clienteDemandado?: ClienteData;
   abogadoDemandado?: ProfileData;
+  demanda?: DemandaData;
+  citaciones?: CitacionData[];
+  audiencias?: AudienciaData[];
+  resoluciones?: ResolucionData[];
+  sentencia?: SentenciaData;
+  documentos?: DocumentoData[];
+  notificaciones?: NotificacionData[];
+  plazos?: PlazoData[];
 }
 
 export interface CreateProcesoInput {

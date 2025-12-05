@@ -106,7 +106,6 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
             userId: user.id,
             firstName: data.firstName,
             lastName: data.lastName,
-            birthDate: data.birthDate,
             avatarUrl,
           }),
         });

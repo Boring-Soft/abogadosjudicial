@@ -52,7 +52,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
         title: "Success",
         description: "You have been signed in.",
       });
-      router.push("/dashboard");
+      // Redirect is handled by the signIn function in auth provider
     } catch {
       toast({
         title: "Error",

@@ -39,7 +39,7 @@ interface ExpedienteDigitalProps {
 export function ExpedienteDigital({ procesoId, userRole }: ExpedienteDigitalProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [proceso, setProceso] = useState<any>(null);
+  const [proceso, setProceso] = useState<ProcesoWithRelations | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
