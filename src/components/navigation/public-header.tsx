@@ -21,8 +21,12 @@ export function PublicHeader() {
         {/* Logo */}
         <div className="flex lg:flex-1">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-400" />
-            <span className="text-xl font-bold">Boring Automation</span>
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-white">
+                <path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2ZM21 11h-3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2ZM12 2a2 2 0 0 1 2 2v14a2 2 0 0 1-4 0V4a2 2 0 0 1 2-2Z"/>
+              </svg>
+            </div>
+            <span className="text-xl font-bold">Sistema Judicial Bolivia</span>
           </Link>
         </div>
 
@@ -44,87 +48,87 @@ export function PublicHeader() {
 
         {/* Desktop navigation */}
         <div className="hidden lg:flex lg:gap-x-8">
-          {/* Product Dropdown */}
+          {/* Funcionalidades Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-x-1 text-sm font-semibold leading-6 text-foreground hover:text-primary">
-              Product <ChevronDown className="h-4 w-4" />
+              Funcionalidades <ChevronDown className="h-4 w-4" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuItem asChild>
-                <Link href="/product/ai-calls">AI Calls</Link>
+                <Link href="/#demandas">Demandas Digitales</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/product/workflow">Workflow Automation</Link>
+                <Link href="/#citaciones">Citaciones Inteligentes</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/product/whatsapp">WhatsApp AI Calls</Link>
+                <Link href="/#audiencias">Audiencias Virtuales</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/#resoluciones">Resoluciones y Sentencias</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/#expediente">Expediente Digital</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Solutions Dropdown */}
+          {/* Roles Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-x-1 text-sm font-semibold leading-6 text-foreground hover:text-primary">
-              Solutions <ChevronDown className="h-4 w-4" />
+              Usuarios <ChevronDown className="h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
               <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                By Team
+                Por Rol
               </div>
               <DropdownMenuItem asChild>
-                <Link href="/solutions/sales">Sales</Link>
+                <Link href="/#para-abogados">Para Abogados</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/solutions/marketing">Marketing</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/solutions/operations">Operations</Link>
+                <Link href="/#para-jueces">Para Jueces</Link>
               </DropdownMenuItem>
               <div className="my-1 border-t" />
               <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                By Industry
+                Por Materia
               </div>
               <DropdownMenuItem asChild>
-                <Link href="/solutions/industry/saas">SaaS</Link>
+                <Link href="/#civil">Materia Civil</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/solutions/industry/real-estate">Real Estate</Link>
+                <Link href="/#familiar">Materia Familiar</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/solutions/industry/education">Education</Link>
+                <Link href="/#comercial">Materia Comercial</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Resources Dropdown */}
+          {/* Recursos Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-x-1 text-sm font-semibold leading-6 text-foreground hover:text-primary">
-              Resources <ChevronDown className="h-4 w-4" />
+              Recursos <ChevronDown className="h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
               <DropdownMenuItem asChild>
-                <Link href="/docs">Documentation</Link>
+                <Link href="/#documentacion">Documentación</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/academy">Academy</Link>
+                <Link href="/#codigo-procesal">Código Procesal Civil</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/integrations">Integrations</Link>
+                <Link href="/#preguntas-frecuentes">Preguntas Frecuentes</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/blog">Blog</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/contact">Contact</Link>
+                <Link href="/#soporte">Soporte Técnico</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
           <Link
-            href="/pricing"
+            href="/#beneficios"
             className="text-sm font-semibold leading-6 text-foreground hover:text-primary"
           >
-            Pricing
+            Beneficios
           </Link>
         </div>
 
@@ -132,13 +136,13 @@ export function PublicHeader() {
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
           <ThemeToggle />
           <Button variant="ghost" asChild>
-            <Link href="/dashboard">Dashboard</Link>
+            <Link href="/dashboard">Panel</Link>
           </Button>
           <Button variant="ghost" asChild>
-            <Link href="/sign-in">Log in</Link>
+            <Link href="/sign-in">Iniciar Sesión</Link>
           </Button>
           <Button className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
-            <Link href="/sign-up">Sign up</Link>
+            <Link href="/sign-up">Registrarse</Link>
           </Button>
         </div>
       </nav>

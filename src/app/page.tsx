@@ -11,9 +11,9 @@ import { FinalCTASection } from "@/components/landing/final-cta-section";
 import { AnalyticsProvider } from "@/components/analytics-provider";
 
 export const metadata = {
-  title: "Boring Automation - The Fastest Way to Automate with AI",
+  title: "Sistema de Gestión Procesal Judicial - Bolivia",
   description:
-    "Empower your sales, marketing, and operations teams with AI agents that work 24/7. Setup in 7 days, trusted by 50,000+ companies.",
+    "Plataforma digital integral para la gestión de procesos judiciales en Bolivia. Automatiza demandas, citaciones, audiencias y sentencias con firma digital y notificaciones en tiempo real.",
 };
 
 export default function Home() {
