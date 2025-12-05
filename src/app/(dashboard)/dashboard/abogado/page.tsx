@@ -6,12 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { FileText, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { FileText, Clock, CheckCircle, AlertCircle, Users, Scale } from "lucide-react";
 
-export default async function JuezDashboardPage() {
+export default async function AbogadoDashboardPage() {
   const session = await auth();
 
-  if (!session?.user || session.user.role !== UserRole.JUEZ) {
+  if (!session?.user || session.user.role !== UserRole.ABOGADO) {
     redirect("/sign-in");
   }
 
@@ -23,74 +23,63 @@ export default async function JuezDashboardPage() {
     redirect("/sign-in");
   }
 
-  // Obtener estadísticas de demandas
+  // Obtener estadísticas de procesos
   const [
-    demandasPendientes,
-    demandasAdmitidas,
-    demandasObservadas,
-    demandasRechazadas,
+    procesosBorrador,
+    procesosPresentados,
+    procesosObservados,
+    procesosAdmitidos,
+    procesosCitados,
     totalProcesos,
   ] = await Promise.all([
     prisma.proceso.count({
       where: {
-        estado: "PRESENTADO",
-        juezId: profile.id,
+        estado: "BORRADOR",
+        abogadoActorId: profile.id,
       },
     }),
     prisma.proceso.count({
       where: {
-        estado: "ADMITIDO",
-        juezId: profile.id,
+        estado: "PRESENTADO",
+        abogadoActorId: profile.id,
       },
     }),
     prisma.proceso.count({
       where: {
         estado: "OBSERVADO",
-        juezId: profile.id,
+        abogadoActorId: profile.id,
       },
     }),
     prisma.proceso.count({
       where: {
-        estado: "RECHAZADO",
-        juezId: profile.id,
+        estado: "ADMITIDO",
+        abogadoActorId: profile.id,
       },
     }),
     prisma.proceso.count({
       where: {
-        juezId: profile.id,
+        estado: "CITADO",
+        abogadoActorId: profile.id,
+      },
+    }),
+    prisma.proceso.count({
+      where: {
+        abogadoActorId: profile.id,
       },
     }),
   ]);
 
-  // Obtener demandas recientes pendientes de revisión
-  const demandasRecientes = await prisma.proceso.findMany({
+  // Obtener procesos observados (requieren corrección)
+  const procesosParaCorregir = await prisma.proceso.findMany({
     where: {
-      estado: "PRESENTADO",
-      juezId: profile.id,
+      estado: "OBSERVADO",
+      abogadoActorId: profile.id,
     },
     include: {
       clienteActor: true,
-      abogadoActor: true,
       juzgado: true,
+      juez: true,
       demanda: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 5,
-  });
-
-  // Obtener procesos admitidos que necesitan citación
-  const procesosParaCitar = await prisma.proceso.findMany({
-    where: {
-      estado: "ADMITIDO",
-      juezId: profile.id,
-    },
-    include: {
-      clienteActor: true,
-      abogadoActor: true,
-      juzgado: true,
-      citaciones: true,
     },
     orderBy: {
       updatedAt: "desc",
@@ -98,15 +87,16 @@ export default async function JuezDashboardPage() {
     take: 5,
   });
 
-  // Obtener procesos citados (para ver estado de citaciones)
-  const procesosCitados = await prisma.proceso.findMany({
+  // Obtener procesos citados (requieren contestación de demandado)
+  const procesosParaContestar = await prisma.proceso.findMany({
     where: {
       estado: "CITADO",
-      juezId: profile.id,
+      abogadoActorId: profile.id,
     },
     include: {
       clienteActor: true,
-      abogadoActor: true,
+      clienteDemandado: true,
+      juzgado: true,
       citaciones: {
         where: {
           estado: "EXITOSA",
@@ -120,31 +110,47 @@ export default async function JuezDashboardPage() {
     orderBy: {
       updatedAt: "desc",
     },
+    take: 5,
+  });
+
+  // Obtener procesos en borrador (pendientes de presentar demanda)
+  const procesosPendientes = await prisma.proceso.findMany({
+    where: {
+      estado: "BORRADOR",
+      abogadoActorId: profile.id,
+    },
+    include: {
+      clienteActor: true,
+      juzgado: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
     take: 3,
   });
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard del Juez</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard del Abogado</h1>
         <p className="text-muted-foreground">
           Bienvenido, {profile.firstName} {profile.lastName}
         </p>
       </div>
 
       {/* Estadísticas */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Pendientes de Revisión
+              Borradores
             </CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{demandasPendientes}</div>
+            <div className="text-2xl font-bold">{procesosBorrador}</div>
             <p className="text-xs text-muted-foreground">
-              Demandas por revisar
+              Por presentar
             </p>
           </CardContent>
         </Card>
@@ -152,12 +158,42 @@ export default async function JuezDashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Admitidas
+              Presentados
+            </CardTitle>
+            <Clock className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{procesosPresentados}</div>
+            <p className="text-xs text-muted-foreground">
+              En revisión
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Observados
+            </CardTitle>
+            <AlertCircle className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{procesosObservados}</div>
+            <p className="text-xs text-muted-foreground">
+              Requieren corrección
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Admitidos
             </CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{demandasAdmitidas}</div>
+            <div className="text-2xl font-bold">{procesosAdmitidos}</div>
             <p className="text-xs text-muted-foreground">
               Demandas admitidas
             </p>
@@ -167,14 +203,14 @@ export default async function JuezDashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Observadas
+              Citados
             </CardTitle>
-            <AlertCircle className="h-4 w-4 text-orange-600" />
+            <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{demandasObservadas}</div>
+            <div className="text-2xl font-bold">{procesosCitados}</div>
             <p className="text-xs text-muted-foreground">
-              Con observaciones
+              Citación exitosa
             </p>
           </CardContent>
         </Card>
@@ -182,105 +218,38 @@ export default async function JuezDashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Rechazadas
+              Total
             </CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{demandasRechazadas}</div>
-            <p className="text-xs text-muted-foreground">
-              Demandas rechazadas
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Procesos
-            </CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <Scale className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalProcesos}</div>
             <p className="text-xs text-muted-foreground">
-              Procesos asignados
+              Total de procesos
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Demandas pendientes de revisión */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Demandas Pendientes de Revisión</CardTitle>
-            <Link href="/dashboard/juez/demandas">
-              <Button variant="outline" size="sm">
-                Ver todas
-              </Button>
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {demandasRecientes.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No hay demandas pendientes de revisión
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {demandasRecientes.map((proceso) => (
-                <div
-                  key={proceso.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">
-                        {proceso.clienteActor.nombres} {proceso.clienteActor.apellidos}
-                      </p>
-                      <Badge variant="secondary">{proceso.materia}</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Abogado: {proceso.abogadoActor.firstName}{" "}
-                      {proceso.abogadoActor.lastName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Presentado:{" "}
-                      {new Date(proceso.createdAt).toLocaleDateString("es-BO")}
-                    </p>
-                  </div>
-                  {proceso.demanda && (
-                    <Link href={`/dashboard/juez/demandas/${proceso.demanda.id}`}>
-                      <Button size="sm">Revisar</Button>
-                    </Link>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Procesos admitidos - Ordenar citación */}
-      {procesosParaCitar.length > 0 && (
+      {/* Demandas observadas - Requieren corrección */}
+      {procesosParaCorregir.length > 0 && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Procesos Admitidos - Ordenar Citación</CardTitle>
-              <Link href="/dashboard/procesos?estado=ADMITIDO">
+              <CardTitle>Demandas Observadas - Requieren Corrección</CardTitle>
+              <Link href="/dashboard/procesos?estado=OBSERVADO">
                 <Button variant="outline" size="sm">
-                  Ver todos
+                  Ver todas
                 </Button>
               </Link>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {procesosParaCitar.map((proceso) => (
+              {procesosParaCorregir.map((proceso) => (
                 <div
                   key={proceso.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors border-orange-200 bg-orange-50/50"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -288,23 +257,26 @@ export default async function JuezDashboardPage() {
                         {proceso.clienteActor.nombres} {proceso.clienteActor.apellidos}
                       </p>
                       <Badge variant="secondary">{proceso.materia}</Badge>
+                      <Badge variant="outline" className="border-orange-600 text-orange-600">
+                        Observado
+                      </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Abogado: {proceso.abogadoActor.firstName}{" "}
-                      {proceso.abogadoActor.lastName}
+                      Juzgado: {proceso.juzgado.nombre}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       NUREJ: {proceso.nurej || "Sin asignar"}
                     </p>
-                    {proceso.citaciones.length > 0 && (
-                      <Badge variant="outline" className="text-xs">
-                        {proceso.citaciones.length} citación(es) registrada(s)
-                      </Badge>
+                    {proceso.demanda?.observaciones && (
+                      <p className="text-xs text-orange-600 mt-2">
+                        <strong>Observación:</strong> {proceso.demanda.observaciones.substring(0, 100)}
+                        {proceso.demanda.observaciones.length > 100 && "..."}
+                      </p>
                     )}
                   </div>
-                  <Link href={`/dashboard/juez/procesos/${proceso.id}/citacion`}>
-                    <Button size="sm" variant="default">
-                      Ordenar Citación
+                  <Link href={`/dashboard/procesos/${proceso.id}/demanda`}>
+                    <Button size="sm" variant="default" className="bg-orange-500 hover:bg-orange-600">
+                      Corregir Demanda
                     </Button>
                   </Link>
                 </div>
@@ -314,12 +286,12 @@ export default async function JuezDashboardPage() {
         </Card>
       )}
 
-      {/* Procesos citados - Estado de citaciones */}
-      {procesosCitados.length > 0 && (
+      {/* Procesos citados - Pendiente de contestación */}
+      {procesosParaContestar.length > 0 && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Citaciones Exitosas - Pendiente de Contestación</CardTitle>
+              <CardTitle>Procesos Citados - Pendiente de Contestación del Demandado</CardTitle>
               <Link href="/dashboard/procesos?estado=CITADO">
                 <Button variant="outline" size="sm">
                   Ver todos
@@ -329,7 +301,7 @@ export default async function JuezDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {procesosCitados.map((proceso) => (
+              {procesosParaContestar.map((proceso) => (
                 <div
                   key={proceso.id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -344,10 +316,11 @@ export default async function JuezDashboardPage() {
                         Citado
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Abogado: {proceso.abogadoActor.firstName}{" "}
-                      {proceso.abogadoActor.lastName}
-                    </p>
+                    {proceso.clienteDemandado && (
+                      <p className="text-sm text-muted-foreground">
+                        Demandado: {proceso.clienteDemandado.nombres} {proceso.clienteDemandado.apellidos}
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       NUREJ: {proceso.nurej || "Sin asignar"}
                     </p>
@@ -370,22 +343,74 @@ export default async function JuezDashboardPage() {
         </Card>
       )}
 
+      {/* Procesos pendientes de presentar demanda */}
+      {procesosPendientes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Procesos en Borrador - Presentar Demanda</CardTitle>
+              <Link href="/dashboard/procesos?estado=BORRADOR">
+                <Button variant="outline" size="sm">
+                  Ver todos
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {procesosPendientes.map((proceso) => (
+                <div
+                  key={proceso.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">
+                        {proceso.clienteActor.nombres} {proceso.clienteActor.apellidos}
+                      </p>
+                      <Badge variant="secondary">{proceso.materia}</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Juzgado: {proceso.juzgado.nombre}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Creado: {new Date(proceso.createdAt).toLocaleDateString("es-BO")}
+                    </p>
+                  </div>
+                  <Link href={`/dashboard/procesos/${proceso.id}/demanda`}>
+                    <Button size="sm">
+                      Presentar Demanda
+                    </Button>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Acciones rápidas */}
       <Card>
         <CardHeader>
           <CardTitle>Acciones Rápidas</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <Link href="/dashboard/juez/demandas">
-            <Button className="w-full" variant="outline">
+        <CardContent className="grid gap-4 md:grid-cols-3">
+          <Link href="/dashboard/procesos/nuevo">
+            <Button className="w-full" variant="default">
               <FileText className="mr-2 h-4 w-4" />
-              Revisar Demandas
+              Nuevo Proceso
             </Button>
           </Link>
           <Link href="/dashboard/procesos">
             <Button className="w-full" variant="outline">
-              <FileText className="mr-2 h-4 w-4" />
-              Ver Procesos
+              <Scale className="mr-2 h-4 w-4" />
+              Ver Todos los Procesos
+            </Button>
+          </Link>
+          <Link href="/dashboard/clientes">
+            <Button className="w-full" variant="outline">
+              <Users className="mr-2 h-4 w-4" />
+              Mis Clientes
             </Button>
           </Link>
         </CardContent>
