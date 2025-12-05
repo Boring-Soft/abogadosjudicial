@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { FileText, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Calendar, Video } from "lucide-react";
 
 export default async function JuezDashboardPage() {
   const session = await auth();
@@ -121,6 +121,31 @@ export default async function JuezDashboardPage() {
       updatedAt: "desc",
     },
     take: 3,
+  });
+
+  // Obtener audiencias programadas próximas
+  const audienciasProgramadas = await prisma.audiencia.findMany({
+    where: {
+      proceso: {
+        juezId: profile.id,
+      },
+      estado: "PROGRAMADA",
+      fechaHora: {
+        gte: new Date(),
+      },
+    },
+    include: {
+      proceso: {
+        include: {
+          clienteActor: true,
+          abogadoActor: true,
+        },
+      },
+    },
+    orderBy: {
+      fechaHora: "asc",
+    },
+    take: 5,
   });
 
   return (
@@ -362,6 +387,58 @@ export default async function JuezDashboardPage() {
                     <Button size="sm" variant="outline">
                       Ver Expediente
                     </Button>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Audiencias Programadas */}
+      {audienciasProgramadas.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Audiencias Programadas
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {audienciasProgramadas.map((audiencia) => (
+                <div
+                  key={audiencia.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">
+                        {audiencia.proceso.clienteActor.nombres} {audiencia.proceso.clienteActor.apellidos}
+                      </p>
+                      <Badge variant="secondary">{audiencia.tipo}</Badge>
+                      {audiencia.modalidad === "VIRTUAL" && (
+                        <Badge variant="outline" className="flex items-center gap-1">
+                          <Video className="h-3 w-3" />
+                          Virtual
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      NUREJ: {audiencia.proceso.nurej || "Sin asignar"}
+                    </p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(audiencia.fechaHora).toLocaleString("es-BO", {
+                        dateStyle: "full",
+                        timeStyle: "short",
+                      })}
+                    </p>
+                  </div>
+                  <Link href={`/dashboard/juez/audiencias/${audiencia.id}`}>
+                    <Button size="sm">Realizar Audiencia</Button>
                   </Link>
                 </div>
               ))}

@@ -6,6 +6,7 @@ import {
   UserCircle,
   FileText,
   Gavel,
+  Calendar,
 } from "lucide-react";
 import type { SidebarData } from "../types";
 import { UserRole } from "@prisma/client";
@@ -75,6 +76,11 @@ export const getSidebarDataForAbogado = (user: { name: string; email: string; av
           url: "/dashboard/procesos",
           icon: FolderKanban,
         },
+        {
+          title: "Audiencias",
+          url: "/dashboard/audiencias",
+          icon: Calendar,
+        },
       ],
     },
     {
@@ -127,6 +133,11 @@ export const getSidebarDataForJuez = (user: { name: string; email: string; avata
           title: "Procesos",
           url: "/dashboard/procesos",
           icon: FolderKanban,
+        },
+        {
+          title: "Audiencias",
+          url: "/dashboard/audiencias",
+          icon: Calendar,
         },
       ],
     },

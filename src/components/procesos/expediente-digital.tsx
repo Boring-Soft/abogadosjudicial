@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, FileText, Clock, Users, Gavel, Bell, AlertCircle, CheckCircle } from "lucide-react";
+import { ArrowLeft, FileText, Clock, Users, Gavel, Bell, AlertCircle, CheckCircle, Calendar } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -305,6 +305,39 @@ export function ExpedienteDigital({ procesoId, userRole }: ExpedienteDigitalProp
                   La demanda ha sido admitida por el juez. El proceso continúa con la citación del
                   demandado.
                 </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {userRole === UserRole.JUEZ &&
+       (proceso.estado === EstadoProceso.CITADO ||
+        proceso.estado === EstadoProceso.CONTESTADO ||
+        proceso.estado === EstadoProceso.ADMITIDO) && (
+        <Card className="border-blue-200 bg-blue-50/50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg mb-1">Programar Audiencia</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {proceso.estado === EstadoProceso.CONTESTADO
+                    ? "El demandado ha presentado contestación. Puede programar la audiencia preliminar para intentar conciliación y admitir pruebas."
+                    : proceso.estado === EstadoProceso.CITADO
+                    ? "El demandado ha sido citado exitosamente. Puede esperar la contestación o programar una audiencia preliminar."
+                    : "El proceso está admitido. Puede programar una audiencia preliminar o complementaria."}
+                </p>
+                <Link href={`/dashboard/juez/procesos/${procesoId}/audiencia`}>
+                  <Button size="lg" variant="default" className="bg-blue-600 hover:bg-blue-700">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Programar Audiencia
+                  </Button>
+                </Link>
               </div>
             </div>
           </CardContent>

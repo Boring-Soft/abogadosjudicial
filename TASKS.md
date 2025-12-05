@@ -280,61 +280,67 @@
 
 ## FASE 3: AUDIENCIAS, RESOLUCIONES Y SENTENCIAS
 
-### T012: Módulo de Audiencias
+### T012: Módulo de Audiencias ✅ (COMPLETADO)
 
 #### Convocatoria a Audiencia Preliminar (JUEZ)
-- [ ] Crear página de programación de audiencia (/dashboard/juez/procesos/[nurej]/audiencia)
-- [ ] Formulario: fecha, hora, tipo (preliminar/complementaria), modalidad (presencial/virtual)
-- [ ] Campo para ingresar link de Google Meet (manual)
-- [ ] Selección de asistentes obligatorios y opcionales
-- [ ] Generación de auto de convocatoria (PDF)
-- [ ] Crear evento en calendario del juez
-- [ ] Notificar a ambos ABOGADOS con link de Google Meet (in-app)
+- [x] Crear validaciones Zod para audiencias (programar, iniciar, cerrar)
+- [x] Crear API POST /api/audiencias para programar audiencia
+- [x] Crear API GET /api/audiencias?procesoId=xxx
+- [x] Crear API PUT /api/audiencias/[id] para iniciar, cerrar y suspender
+- [x] Crear página de programación de audiencia (/dashboard/juez/procesos/[id]/audiencia)
+- [x] Formulario: fecha, hora, tipo (preliminar/complementaria), modalidad (presencial/virtual)
+- [x] Campo para ingresar link de Google Meet (manual)
+- [x] Selección de asistentes obligatorios y opcionales (auto-generados por defecto)
+- [ ] Generación de auto de convocatoria (PDF - TODO)
+- [ ] Crear evento en calendario del juez (TODO)
+- [x] Notificar a ambos ABOGADOS con link de Google Meet (in-app)
+- [x] Cambiar estado del proceso a AUDIENCIA_PRELIMINAR
 
 #### Pre-Audiencia
-- [ ] Sistema de recordatorios: día anterior, 1 hora antes, 5 minutos antes
-- [ ] Enviar notificaciones in-app a JUEZ y ABOGADOS
+- [ ] Sistema de recordatorios: día anterior, 1 hora antes, 5 minutos antes (TODO)
+- [ ] Enviar notificaciones in-app a JUEZ y ABOGADOS (TODO)
 
 #### Realización de Audiencia (JUEZ preside)
-- [ ] Página de audiencia en vivo (/dashboard/juez/audiencia/[id])
-- [ ] Botón "Iniciar Audiencia" (registra timestamp)
-- [ ] Botón "Abrir Google Meet" (abre link en nueva pestaña)
-- [ ] Checklist de asistencia de partes
-- [ ] Formulario de ratificación de demanda y contestación
-- [ ] Formulario de conciliación con opciones: HAY ACUERDO / NO HAY ACUERDO
-- [ ] Si hay acuerdo: campo para dictar acuerdo en acta → proceso termina
-- [ ] Si no hay acuerdo: campo para fijar objeto del proceso
-- [ ] Lista de pruebas ofrecidas con botones: Admitir / Rechazar (con fundamentación)
-- [ ] Formulario para señalar audiencia complementaria (si es necesario)
-- [ ] Botón "Cerrar Audiencia" (registra timestamp de cierre)
+- [x] Página de audiencia en vivo (/dashboard/juez/audiencias/[id])
+- [x] Botón "Iniciar Audiencia" (registra timestamp)
+- [x] Botón "Abrir Google Meet" (abre link en nueva pestaña)
+- [x] Checklist de asistencia de partes
+- [x] Formulario de ratificación de demanda y contestación (implícito)
+- [x] Formulario de conciliación con opciones: HAY ACUERDO / NO HAY ACUERDO
+- [x] Si hay acuerdo: campo para dictar acuerdo en acta → proceso termina (CONCILIADO)
+- [x] Si no hay acuerdo: campo para fijar objeto del proceso
+- [x] Lista de pruebas ofrecidas con botones: Admitir / Rechazar (con fundamentación)
+- [x] Formulario para señalar audiencia complementaria (si es necesario)
+- [x] Botón "Cerrar Audiencia" (registra timestamp de cierre y genera acta)
 
 #### Participación en Audiencia (ABOGADO)
-- [ ] Página de información de audiencia (/dashboard/audiencias/[id])
-- [ ] Ver detalles de la audiencia (fecha, hora, tipo)
-- [ ] Botón "Unirse a Google Meet" (abre link en nueva pestaña)
-- [ ] Campo de notas privadas (no registradas en sistema)
+- [x] Página de información de audiencia (/dashboard/procesos/[id]/audiencias/[audienciaId])
+- [x] Ver detalles de la audiencia (fecha, hora, tipo, modalidad)
+- [x] Botón "Unirse a Google Meet" (abre link en nueva pestaña)
+- [ ] Campo de notas privadas (no registradas en sistema - TODO)
 
 #### Post-Audiencia (JUEZ)
-- [ ] Generar borrador de acta de audiencia con plantilla Art. 365
-- [ ] Editor de acta con secciones: Presidió, Asistentes, Desarrollo, Ratificación, Conciliación, Objeto del proceso, Pruebas admitidas, Señalamiento audiencia complementaria
-- [ ] Firma digital de acta
-- [ ] Generar PDF oficial
-- [ ] Subir acta al expediente
-- [ ] Notificar a ABOGADOS "Acta disponible" (in-app)
-- [ ] Actualizar estado: CONCILIADO / AUDIENCIA_COMPLEMENTARIA_SEÑALADA / PARA_SENTENCIA
+- [x] Generar acta de audiencia automáticamente al cerrar
+- [x] Registrar secciones: Asistentes, Conciliación, Objeto del proceso, Pruebas admitidas
+- [ ] Firma digital de acta (TODO)
+- [ ] Generar PDF oficial (TODO)
+- [x] Almacenar hash SHA-256 del acta
+- [x] Notificar a ABOGADOS "Acta disponible" (in-app)
+- [x] Actualizar estado: CONCILIADO / AUDIENCIA_COMPLEMENTARIA / PARA_SENTENCIA
 
 #### Post-Audiencia (ABOGADO)
-- [ ] Recibir notificación in-app de acta disponible
-- [ ] Ver y descargar acta de audiencia
-- [ ] Ver lista de pruebas admitidas
+- [x] Recibir notificación in-app de acta disponible
+- [x] Ver acta de audiencia completa en expediente
+- [x] Ver lista de pruebas admitidas/rechazadas con fundamentación
+- [ ] Descargar acta de audiencia (PDF - TODO)
 
 #### Audiencia Complementaria
-- [ ] Proceso similar a audiencia preliminar
-- [ ] Programar dentro de 15 días
-- [ ] Enfoque en práctica de pruebas: testimonial, pericial, inspección
-- [ ] Al finalizar: JUEZ declara cerrada etapa probatoria
-- [ ] Cambiar estado a PARA_SENTENCIA
-- [ ] Iniciar timer de 20 días para sentencia
+- [x] Proceso similar a audiencia preliminar
+- [x] Programar automáticamente desde audiencia preliminar
+- [x] Mismo flujo: iniciar, asistencia, pruebas, cerrar
+- [x] Al finalizar: JUEZ declara cerrada etapa probatoria
+- [x] Cambiar estado a PARA_SENTENCIA
+- [x] Iniciar plazo automático de 20 días para sentencia
 
 ### T013: Módulo de Resoluciones (JUEZ)
 
