@@ -207,9 +207,11 @@ export default async function JuezDashboardPage() {
                       {new Date(proceso.createdAt).toLocaleDateString("es-BO")}
                     </p>
                   </div>
-                  <Link href={`/dashboard/juez/demandas/${proceso.id}`}>
-                    <Button size="sm">Revisar</Button>
-                  </Link>
+                  {proceso.demanda && (
+                    <Link href={`/dashboard/juez/demandas/${proceso.demanda.id}`}>
+                      <Button size="sm">Revisar</Button>
+                    </Link>
+                  )}
                 </div>
               ))}
             </div>

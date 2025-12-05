@@ -1,85 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, requireRole } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { updateDemandaSchema } from "@/lib/validations/demanda";
-import { EstadoProceso } from "@prisma/client";
+import { createDemandaSchema } from "@/lib/validations/demanda";
+import { EstadoProceso, TipoNotificacion } from "@prisma/client";
 import crypto from "crypto";
 
 /**
- * GET /api/demandas/[id]
- * Obtener demanda específica por ID
- */
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const user = await getCurrentUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    }
-
-    // Obtener perfil del usuario
-    const profile = await prisma.profile.findUnique({
-      where: { userId: user.id },
-    });
-
-    if (!profile) {
-      return NextResponse.json(
-        { error: "Perfil no encontrado" },
-        { status: 404 }
-      );
-    }
-
-    const demanda = await prisma.demanda.findUnique({
-      where: { id },
-      include: {
-        proceso: {
-          include: {
-            juzgado: true,
-            clienteActor: true,
-            abogadoActor: true,
-            juez: true,
-          },
-        },
-      },
-    });
-
-    if (!demanda) {
-      return NextResponse.json(
-        { error: "Demanda no encontrada" },
-        { status: 404 }
-      );
-    }
-
-    // Verificar permisos de acceso
-    const hasAccess =
-      demanda.proceso.abogadoActorId === profile.id ||
-      demanda.proceso.abogadoDemandadoId === profile.id ||
-      demanda.proceso.juezId === profile.id;
-
-    if (!hasAccess) {
-      return NextResponse.json(
-        { error: "No tiene permisos para ver esta demanda" },
-        { status: 403 }
-      );
-    }
-
-    return NextResponse.json({ success: true, data: demanda });
-  } catch (error) {
-    console.error("Error al obtener demanda:", error);
-    return NextResponse.json(
-      { error: "Error al obtener la demanda" },
-      { status: 500 }
-    );
-  }
-}
-
-/**
  * PUT /api/demandas/[id]
- * Actualizar/corregir demanda (solo ABOGADO y solo si está OBSERVADA)
+ * Actualizar demanda observada (solo ABOGADO)
  */
 export async function PUT(
   req: NextRequest,
@@ -87,8 +15,9 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const user = await getCurrentUser();
 
+    // Verificar autenticación y rol
+    const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
@@ -113,23 +42,32 @@ export async function PUT(
       );
     }
 
-    // Obtener demanda actual
-    const demandaActual = await prisma.demanda.findUnique({
+    // Parsear y validar datos
+    const body = await req.json();
+    const validatedData = createDemandaSchema.parse(body);
+
+    // Verificar que la demanda existe
+    const demandaExistente = await prisma.demanda.findUnique({
       where: { id },
       include: {
-        proceso: true,
+        proceso: {
+          include: {
+            juzgado: true,
+            juez: true,
+          },
+        },
       },
     });
 
-    if (!demandaActual) {
+    if (!demandaExistente) {
       return NextResponse.json(
         { error: "Demanda no encontrada" },
         { status: 404 }
       );
     }
 
-    // Verificar que el abogado es el dueño
-    if (demandaActual.proceso.abogadoActorId !== profile.id) {
+    // Verificar que el abogado es el propietario del proceso
+    if (demandaExistente.proceso.abogadoActorId !== profile.id) {
       return NextResponse.json(
         { error: "No tiene permisos para actualizar esta demanda" },
         { status: 403 }
@@ -137,83 +75,71 @@ export async function PUT(
     }
 
     // Verificar que el proceso está en estado OBSERVADO
-    if (demandaActual.proceso.estado !== EstadoProceso.OBSERVADO) {
+    if (demandaExistente.proceso.estado !== EstadoProceso.OBSERVADO) {
       return NextResponse.json(
-        { error: "Solo se pueden corregir demandas observadas" },
+        { error: "Solo se pueden actualizar demandas observadas" },
         { status: 400 }
       );
     }
 
-    // Parsear y validar datos
-    const body = await req.json();
-    const validatedData = updateDemandaSchema.parse({ ...body, id });
-
-    // Preparar datos de actualización
-    const updateData: any = {};
-
-    if (validatedData.designacionJuez)
-      updateData.designacionJuez = validatedData.designacionJuez;
-    if (validatedData.objeto) updateData.objeto = validatedData.objeto;
-    if (validatedData.hechos) updateData.hechos = validatedData.hechos;
-    if (validatedData.derecho) updateData.derecho = validatedData.derecho;
-    if (validatedData.petitorio) updateData.petitorio = validatedData.petitorio;
-    if (validatedData.valorDemanda !== undefined)
-      updateData.valorDemanda = validatedData.valorDemanda;
-    if (validatedData.pruebaOfrecida)
-      updateData.pruebaOfrecida = validatedData.pruebaOfrecida;
-
-    // Incrementar versión
-    updateData.version = demandaActual.version + 1;
-
-    // Generar nuevo hash
+    // Generar nuevo hash del contenido
     const contenido = JSON.stringify({
-      designacionJuez:
-        validatedData.designacionJuez || demandaActual.designacionJuez,
-      objeto: validatedData.objeto || demandaActual.objeto,
-      hechos: validatedData.hechos || demandaActual.hechos,
-      derecho: validatedData.derecho || demandaActual.derecho,
-      petitorio: validatedData.petitorio || demandaActual.petitorio,
-      valorDemanda: validatedData.valorDemanda ?? demandaActual.valorDemanda,
-      pruebaOfrecida:
-        validatedData.pruebaOfrecida || demandaActual.pruebaOfrecida,
+      designacionJuez: validatedData.designacionJuez,
+      objeto: validatedData.objeto,
+      hechos: validatedData.hechos,
+      derecho: validatedData.derecho,
+      petitorio: validatedData.petitorio,
+      valorDemanda: validatedData.valorDemanda,
+      pruebaOfrecida: validatedData.pruebaOfrecida,
     });
-    updateData.documentoHash = crypto
-      .createHash("sha256")
-      .update(contenido)
-      .digest("hex");
+    const hash = crypto.createHash("sha256").update(contenido).digest("hex");
 
-    // TODO: Generar nuevo PDF
-    updateData.documentoUrl = `/storage/procesos/${demandaActual.proceso.nurej}/demandas/demanda_v${updateData.version}.pdf`;
+    const nuevaVersion = demandaExistente.version + 1;
+    const documentoUrl = `/storage/procesos/${demandaExistente.proceso.nurej}/demandas/demanda_v${nuevaVersion}.pdf`;
 
-    // Limpiar observaciones
-    updateData.observaciones = null;
-
-    // Actualizar demanda
+    // Actualizar demanda y proceso en una transacción
     const demandaActualizada = await prisma.$transaction(async (tx) => {
-      const updated = await tx.demanda.update({
+      // Actualizar demanda
+      const demanda = await tx.demanda.update({
         where: { id },
-        data: updateData,
+        data: {
+          designacionJuez: validatedData.designacionJuez,
+          objeto: validatedData.objeto,
+          hechos: validatedData.hechos,
+          derecho: validatedData.derecho,
+          petitorio: validatedData.petitorio,
+          valorDemanda: validatedData.valorDemanda,
+          pruebaOfrecida: validatedData.pruebaOfrecida,
+          documentoUrl,
+          documentoHash: hash,
+          version: nuevaVersion,
+          observaciones: null, // Limpiar observaciones previas
+        },
       });
 
-      // Cambiar estado del proceso de OBSERVADO a PRESENTADO
+      // Cambiar estado del proceso a PRESENTADO
       await tx.proceso.update({
-        where: { id: demandaActual.procesoId },
-        data: { estado: EstadoProceso.PRESENTADO },
+        where: { id: demandaExistente.procesoId },
+        data: {
+          estado: EstadoProceso.PRESENTADO,
+        },
       });
 
-      return updated;
+      return demanda;
     });
 
-    // Notificar al juez
-    if (demandaActual.proceso.juezId) {
+    // Notificar al JUEZ
+    if (demandaExistente.proceso.juezId) {
       await prisma.notificacion.create({
         data: {
-          usuarioId: demandaActual.proceso.juezId,
-          procesoId: demandaActual.procesoId,
-          tipo: "DEMANDA_PRESENTADA" as any,
+          usuarioId: demandaExistente.proceso.juezId,
+          procesoId: demandaExistente.procesoId,
+          tipo: TipoNotificacion.DEMANDA_PRESENTADA,
           titulo: "Demanda corregida y re-presentada",
-          mensaje: `La demanda del proceso ${demandaActual.proceso.nurej} ha sido corregida`,
-          accionUrl: `/dashboard/juez/demandas/${id}`,
+          mensaje: `El abogado ha corregido y re-presentado la demanda en el proceso ${
+            demandaExistente.proceso.nurej || demandaExistente.procesoId
+          }. Versión: ${nuevaVersion}`,
+          accionUrl: `/dashboard/juez/demandas/${demandaActualizada.id}`,
           leida: false,
         },
       });
@@ -222,7 +148,7 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       data: demandaActualizada,
-      message: "Demanda corregida exitosamente",
+      message: "Demanda actualizada y re-presentada exitosamente",
     });
   } catch (error) {
     console.error("Error al actualizar demanda:", error);

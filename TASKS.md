@@ -165,7 +165,7 @@
 - [x] Cambiar estado a RECHAZADO
 - [x] Crear resolución (auto de rechazo)
 
-### T010: Módulo de Citaciones (EN PROGRESO)
+### T010: Módulo de Citaciones ⚡ (PROGRESO: 75%)
 
 #### Ordenar citación (JUEZ)
 - [x] Crear validaciones Zod para citaciones
@@ -173,19 +173,24 @@
 - [x] Crear API GET /api/citaciones?procesoId=xxx
 - [x] Cambiar estado del proceso a CITADO
 - [x] Notificar al ABOGADO ACTOR
-- [ ] Crear página de gestión de citaciones (/dashboard/juez/procesos/[id]/citacion)
-- [ ] Vista de datos del demandado (nombre, CI, domicilio real, domicilio procesal)
-- [ ] Selección de tipo de citación: Personal, Por cédula, Por edictos, Tácita
+- [x] Crear página de gestión de citaciones (/dashboard/juez/procesos/[id]/citacion)
+- [x] Vista de datos del demandado (nombre, CI, domicilio real, domicilio procesal)
+- [x] Selección de tipo de citación: Personal, Por cédula, Por edictos, Tácita
+- [x] Componente de diálogo para ordenar citación con descripción de cada tipo
+- [x] Lista de citaciones con estados visuales y badges
 - [ ] Generación automática de cédula de citación (PDF) con datos del demandado, resumen de demanda, plazo 30 días, advertencias legales
 
 #### Citación Personal y Por Cédula
-- [ ] Formulario de registro de citación personal/cédula
-- [ ] Subida de foto de acta de citación
-- [ ] Campo de fecha y hora de citación
-- [ ] Foto del demandado recibiendo (opcional)
-- [ ] Botón "Marcar como EXITOSA"
-- [ ] Al marcar exitosa: registrar timestamp e iniciar timer 30 días
-- [ ] Notificar a ABOGADO ACTOR de citación exitosa
+- [x] Formulario de registro de citación personal/cédula
+- [x] API PUT /api/citaciones/[id]/exitosa para marcar como exitosa
+- [x] Campo de fecha y hora de citación
+- [x] Campo de observaciones
+- [x] Botón "Marcar como EXITOSA" en lista de citaciones
+- [x] Al marcar exitosa: registrar timestamp e iniciar timer 30 días
+- [x] Crear plazo automático en base de datos
+- [x] Notificar a ABOGADO ACTOR de citación exitosa
+- [ ] Subida de foto de acta de citación (TODO: implementar upload)
+- [ ] Foto del demandado recibiendo (opcional - TODO)
 
 #### Citación por Edictos
 - [ ] Formulario de citación por edictos
@@ -201,11 +206,14 @@
 - [ ] Registrar fecha de apersonamiento como fecha de citación
 
 #### Registro de intentos fallidos
-- [ ] Formulario de intento fallido
-- [ ] Campos: fecha, hora, motivo (domicilio cerrado, no encontrado, se negó a recibir)
-- [ ] Foto de evidencia (opcional)
-- [ ] Guardar historial de intentos
-- [ ] Después de 3 intentos: sugerir citación por edictos
+- [x] Formulario de intento fallido con diálogo
+- [x] API POST /api/citaciones/[id]/intento-fallido
+- [x] Campos: fecha, hora, motivo
+- [x] Guardar historial de intentos en campo JSON
+- [x] Después de 3 intentos: marcar como FALLIDA y mostrar recomendación
+- [x] Alerta visual en UI cuando hay 3+ intentos
+- [x] Sugerencia automática de citación por edictos
+- [ ] Foto de evidencia (opcional - TODO: implementar upload)
 
 #### Vista de citación (ABOGADO)
 - [ ] En expediente, sección "Citaciones"
@@ -213,56 +221,60 @@
 - [ ] Timer con días restantes para contestación (si es ACTOR)
 - [ ] Recibir notificación cuando citación es exitosa
 
-### T011: Módulo de Contestaciones y Excepciones
+### T011: Módulo de Contestaciones y Excepciones ⚡ (PROGRESO: 70%)
 
 #### Presentación de contestación (ABOGADO DEMANDADO)
-- [ ] Crear página de contestación (/dashboard/procesos/[nurej]/contestacion)
-- [ ] Opción A: Wizard de contestar la demanda
-- [ ] Lista de hechos de la demanda con opciones: Admite, Niega, Admite parcialmente
-- [ ] Campo de texto para explicar cada negación
-- [ ] Editor de fundamentación de la contestación (hechos y derecho)
-- [ ] Formulario de ofrecimiento de prueba de descargo (documentales, testimoniales, periciales)
-- [ ] Subida de pruebas documentales (PDFs)
-- [ ] Campo de petitorio
-- [ ] Preview y validación de campos obligatorios
-- [ ] Botón "Presentar Contestación"
+- [x] Crear validaciones Zod para contestaciones
+- [x] Crear API POST /api/contestaciones para presentar contestación
+- [x] Crear API GET /api/contestaciones?procesoId=xxx
+- [x] Crear página de contestación (/dashboard/procesos/[id]/contestacion)
+- [x] Opción A: Wizard de contestar la demanda
+- [x] Lista de hechos de la demanda con opciones: Admite, Niega, Admite parcialmente
+- [x] Campo de texto para explicar cada negación
+- [x] Editor de fundamentación de la contestación (hechos y derecho)
+- [x] Formulario de ofrecimiento de prueba de descargo (documentales, testimoniales, periciales)
+- [ ] Subida de pruebas documentales (PDFs - TODO: implementar upload)
+- [x] Campo de petitorio
+- [x] Validación de campos obligatorios con Zod
+- [x] Botón "Presentar Contestación"
 
 #### Allanamiento
-- [ ] Opción B: Formulario de allanamiento
-- [ ] Texto de aceptación de términos de la demanda
-- [ ] Manifestación expresa de allanamiento
-- [ ] Campo de petición de costas (opcional)
+- [x] Opción B: Formulario de allanamiento
+- [x] Texto de aceptación de términos de la demanda
+- [x] Manifestación expresa de allanamiento
+- [x] Campo de petición de costas (opcional)
 
 #### Excepciones Previas (Art. 370)
-- [ ] Opción C: Formulario de excepciones previas
-- [ ] Selección de tipo: Incompetencia, Falta personalidad, Falta personería, Litispendencia, Cosa juzgada, Transacción, Conciliación, Desistimiento, Prescripción, Demanda defectuosa, Otros
-- [ ] Editor de fundamentación detallada
-- [ ] Subida de prueba documental
-- [ ] Campo de petitorio
+- [x] Opción C: Formulario de excepciones previas
+- [x] Selección de tipo: Incompetencia, Falta personalidad, Falta personería, Litispendencia, Cosa juzgada, Transacción, Conciliación, Desistimiento, Prescripción, Demanda defectuosa, Otros
+- [x] Editor de fundamentación detallada
+- [ ] Subida de prueba documental (TODO: implementar upload)
+- [x] Campo de petitorio
 
 #### Reconvención
-- [ ] Opción D: Formulario de reconvención (contrademanda)
-- [ ] Wizard similar a demanda: Objeto, hechos, derecho, petitorio, valor, prueba
-- [ ] Presentar junto con contestación
-- [ ] Notificar a ABOGADO ACTOR para que conteste reconvención (plazo 10 días)
+- [x] Opción D: Formulario de reconvención (contrademanda)
+- [x] Wizard similar a demanda: Objeto, hechos, derecho, petitorio, valor, prueba
+- [x] Presentar junto con contestación
+- [x] Notificar a ABOGADO ACTOR para que conteste reconvención (plazo 10 días)
 
 #### Post-presentación de contestación
-- [ ] Generar PDF de contestación
-- [ ] Calcular hash SHA-256
-- [ ] Almacenar en base de datos y Storage
-- [ ] Cambiar estado del proceso a CONTESTADO
-- [ ] Cancelar timer de 30 días
-- [ ] Notificar al JUEZ y al ABOGADO ACTOR
+- [ ] Generar PDF de contestación (TODO: implementar con biblioteca PDF)
+- [x] Calcular hash SHA-256
+- [x] Almacenar en base de datos y Storage
+- [x] Cambiar estado del proceso a CONTESTADO
+- [x] Cancelar timer de 30 días (marcar plazo como CUMPLIDO)
+- [x] Notificar al JUEZ y al ABOGADO ACTOR
 
 #### Revisión de contestación (JUEZ)
-- [ ] Página de revisión de contestación
+- [ ] Página de revisión de contestación para JUEZ
 - [ ] Vista completa de contestación con pruebas ofrecidas
 - [ ] Si hay excepciones previas: alerta para resolver primero
-- [ ] Formulario para resolver excepciones (Fundar o Rechazar)
-- [ ] Emitir auto de excepción fundamentado
+- [x] API PUT /api/contestaciones/[id]/resolver-excepcion
+- [x] Validación Zod para resolver excepciones (Fundar o Rechazar)
+- [x] Emitir auto de excepción fundamentado (AUTO_INTERLOCUTORIO)
+- [x] Notificar a ambos ABOGADOS sobre resolución de excepción
 - [ ] Si no hay excepciones: botón "Auto-convocar Audiencia Preliminar"
 - [ ] Programar audiencia 5 días después (Art. 365)
-- [ ] Notificar a ambos ABOGADOS
 
 ---
 

@@ -257,7 +257,7 @@ export function ExpedienteDigital({ procesoId, userRole }: ExpedienteDigitalProp
                     <p className="text-sm">{proceso.demanda.observaciones}</p>
                   </div>
                 )}
-                <Link href={`/dashboard/procesos/${procesoId}`}>
+                <Link href={`/dashboard/procesos/${procesoId}/demanda`}>
                   <Button size="lg" variant="default" className="bg-orange-500 hover:bg-orange-600">
                     <FileText className="h-4 w-4 mr-2" />
                     Corregir Demanda

@@ -35,9 +35,10 @@ const STEPS = [
 
 interface DemandaWizardProps {
   proceso: ProcesoWithRelations;
+  isCorreccion?: boolean;
 }
 
-export function DemandaWizard({ proceso }: DemandaWizardProps) {
+export function DemandaWizard({ proceso, isCorreccion = false }: DemandaWizardProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
@@ -47,13 +48,19 @@ export function DemandaWizard({ proceso }: DemandaWizardProps) {
     resolver: zodResolver(createDemandaSchema),
     defaultValues: {
       procesoId: proceso.id,
-      designacionJuez: `Señor Juez del ${proceso.juzgado.nombre}, ${proceso.juzgado.ciudad}, ${proceso.juzgado.departamento}`,
-      objeto: "",
-      hechos: "",
-      derecho: "",
-      petitorio: "",
-      valorDemanda: proceso.cuantia || 0,
-      pruebaOfrecida: "",
+      designacionJuez: isCorreccion && proceso.demanda
+        ? proceso.demanda.designacionJuez
+        : `Señor Juez del ${proceso.juzgado.nombre}, ${proceso.juzgado.ciudad}, ${proceso.juzgado.departamento}`,
+      objeto: isCorreccion && proceso.demanda ? proceso.demanda.objeto : "",
+      hechos: isCorreccion && proceso.demanda ? proceso.demanda.hechos : "",
+      derecho: isCorreccion && proceso.demanda ? proceso.demanda.derecho : "",
+      petitorio: isCorreccion && proceso.demanda ? proceso.demanda.petitorio : "",
+      valorDemanda: isCorreccion && proceso.demanda
+        ? proceso.demanda.valorDemanda
+        : proceso.cuantia || 0,
+      pruebaOfrecida: isCorreccion && proceso.demanda
+        ? proceso.demanda.pruebaOfrecida
+        : "",
     },
   });
 
@@ -93,8 +100,13 @@ export function DemandaWizard({ proceso }: DemandaWizardProps) {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch("/api/demandas", {
-        method: "POST",
+      const url = isCorreccion && proceso.demanda
+        ? `/api/demandas/${proceso.demanda.id}`
+        : "/api/demandas";
+      const method = isCorreccion ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
@@ -103,14 +115,17 @@ export function DemandaWizard({ proceso }: DemandaWizardProps) {
 
       if (response.ok) {
         toast({
-          title: "Demanda presentada",
-          description: "La demanda ha sido presentada exitosamente y está pendiente de admisión",
+          title: isCorreccion ? "Demanda corregida" : "Demanda presentada",
+          description: isCorreccion
+            ? "La demanda ha sido corregida y re-presentada exitosamente"
+            : "La demanda ha sido presentada exitosamente y está pendiente de admisión",
         });
         router.push(`/dashboard/procesos/${proceso.id}`);
+        router.refresh();
       } else {
         toast({
           title: "Error",
-          description: result.error || "No se pudo presentar la demanda",
+          description: result.error || (isCorreccion ? "No se pudo corregir la demanda" : "No se pudo presentar la demanda"),
           variant: "destructive",
         });
       }
@@ -118,7 +133,9 @@ export function DemandaWizard({ proceso }: DemandaWizardProps) {
       console.error("Error submitting demanda:", error);
       toast({
         title: "Error",
-        description: "Ocurrió un error al presentar la demanda",
+        description: isCorreccion
+          ? "Ocurrió un error al corregir la demanda"
+          : "Ocurrió un error al presentar la demanda",
         variant: "destructive",
       });
     } finally {
@@ -207,7 +224,7 @@ export function DemandaWizard({ proceso }: DemandaWizardProps) {
             ) : (
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Presentar Demanda
+                {isCorreccion ? "Re-presentar Demanda Corregida" : "Presentar Demanda"}
               </Button>
             )}
           </div>
