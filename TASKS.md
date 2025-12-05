@@ -383,65 +383,82 @@
 - [x] Ver fecha de notificación (para cómputo de plazos)
 - [ ] Si es apelable: días restantes para apelar + botón "Presentar Recurso de Apelación" (TODO: T014)
 
-### T014: Módulo de Sentencias (Art. 213)
+### T014: Módulo de Sentencias (Art. 213) ⚡ (PROGRESO: 70% - Versión Simplificada)
 
-#### Editor de Sentencia (JUEZ)
-- [ ] Crear página de emisión de sentencia (/dashboard/juez/procesos/[nurej]/sentencia)
-- [ ] Validar que etapa probatoria esté cerrada
-- [ ] Plantilla Art. 213 con secciones obligatorias
+#### Validaciones y API Backend
+- [x] Crear validaciones Zod para sentencias (`src/lib/validations/sentencia.ts`)
+- [x] Schema completo con validación por sección (narrativa, considerandos, resolutiva)
+- [x] Función validateSentenciaCompleta() con mínimos de caracteres
+- [x] Schema de borrador (saveBorradorSentenciaSchema) con campos opcionales
+- [x] Crear API GET /api/sentencias?procesoId=xxx (obtener sentencia)
+- [x] Crear API POST /api/sentencias (guardar borrador)
+- [x] Validación de estado PARA_SENTENCIA en proceso
+- [x] Crear API PUT /api/sentencias/[id]/emitir (emisión final)
+- [x] Generar hash SHA-256 del contenido completo
+- [x] Cambiar estado del proceso a SENTENCIADO al emitir
+- [x] Crear plazo de apelación automático (15 días hábiles)
+- [x] Generar notificaciones in-app automáticas a AMBOS ABOGADOS
+
+#### Editor de Sentencia Simplificado (JUEZ)
+- [x] Crear página de emisión de sentencia (`/dashboard/juez/procesos/[id]/sentencia`)
+- [x] Cargar información del proceso automáticamente
+- [x] Cargar sentencia existente si hay borrador guardado
 
 #### Sección 1: Encabezamiento
-- [ ] Auto-llenado: Juzgado, NUREJ, Actor (nombre, CI, abogado), Demandado (nombre, CI, abogado), Objeto, Fecha
+- [x] Auto-llenado en backend: Juzgado, NUREJ, Actor, Demandado, Objeto, Fecha
 
 #### Sección 2: Narrativa (Resultandos)
-- [ ] Rich Text Editor para resumen de demanda
-- [ ] Campo para resumen de contestación
-- [ ] Campo para trámites del proceso
-- [ ] Campo para pruebas presentadas
-- [ ] Validación: mínimo 500 caracteres
+- [x] Campo Textarea para resumen de demanda (min 100 chars)
+- [x] Campo Textarea para resumen de contestación (min 100 chars)
+- [x] Campo Textarea para trámites del proceso (min 100 chars)
+- [x] Campo Textarea para pruebas presentadas (min 100 chars)
+- [x] Validación: mínimo 500 caracteres en total
 
 #### Sección 3: Motiva (Considerandos)
-- [ ] Rich Text Editor para análisis de pruebas
-- [ ] Campo para valoración de pruebas (Art. 203-208)
-- [ ] Campo para aplicación del derecho (citar artículos)
-- [ ] Campo para razonamiento jurídico
-- [ ] Campo para jurisprudencia aplicable (opcional)
-- [ ] Validación: mínimo 1000 caracteres
-- [ ] Herramientas: insertar cita de ley, referencia a prueba
+- [x] Campo Textarea para análisis de pruebas (min 200 chars)
+- [x] Campo Textarea para valoración de pruebas Art. 203-208 (min 200 chars)
+- [x] Campo Textarea para aplicación del derecho (min 200 chars)
+- [x] Campo Textarea para razonamiento jurídico (min 200 chars)
+- [x] Campo Textarea para jurisprudencia aplicable (opcional, max 5000 chars)
+- [x] Validación: mínimo 1000 caracteres en total
 
 #### Sección 4: Resolutiva (Por Tanto)
-- [ ] Selección de decisión: Admite demanda, Rechaza demanda, Admite parcialmente
-- [ ] Campo para condena: cumplir obligación, pagar suma, entregar bien, hacer/no hacer
-- [ ] Campo para costas: condenar al vencido o exonerar (fundamentar)
-- [ ] Validación: mínimo 200 caracteres
+- [x] Select para decisión: ADMITE, RECHAZA, ADMITE_PARCIALMENTE
+- [x] Campo Textarea para condena (opcional si ADMITE, max 5000 chars)
+- [x] Campo Textarea para costas (obligatorio, min 50 chars)
+- [x] Validación: mínimo 200 caracteres en total
 
 #### Sección 5: Cierre
-- [ ] Auto-llenado: "Regístrese, notifíquese y cúmplase", fecha, lugar
+- [x] Auto-llenado en backend: "Regístrese, notifíquese y cúmplase", fecha, lugar, firma
 
 #### Emisión de Sentencia
-- [ ] Botón "Guardar Borrador" (sin firmar, solo visible para juez)
-- [ ] Botón "Preview" (vista previa PDF)
-- [ ] Botón "Firmar y Emitir Sentencia"
-- [ ] Generar hash SHA-256
-- [ ] Firma digital
-- [ ] Generar PDF oficial con marca de agua
-- [ ] Marcar como FIRMADA E INMUTABLE
-- [ ] Almacenar en expediente
-- [ ] Cambiar estado del proceso a SENTENCIADO
-- [ ] Generar notificaciones in-app a AMBOS ABOGADOS
-- [ ] Registrar fecha de notificación
-- [ ] Iniciar timer de 15 días para apelación
+- [x] Botón "Guardar Borrador" (actualiza sin firmar)
+- [x] Botón "Firmar y Emitir Sentencia" con confirmación
+- [x] Generar hash SHA-256 del documento completo
+- [x] Firma digital interna (metadata firmadoPor)
+- [ ] Generar PDF oficial con marca de agua (TODO: requiere biblioteca PDF)
+- [x] Marcar como FIRMADA E INMUTABLE (fecha de notificación)
+- [x] Almacenar en base de datos
+- [x] Cambiar estado del proceso a SENTENCIADO
+- [x] Generar notificaciones in-app a AMBOS ABOGADOS
+- [x] Registrar fecha de emisión y notificación
+- [x] Crear plazo de apelación de 15 días hábiles
+- [x] Deshabilitar edición una vez emitida
 
-#### Vista de Sentencia (ABOGADO)
-- [ ] En expediente, sección "Sentencia"
-- [ ] Información: fecha emisión, fecha notificación, resultado (favorable/desfavorable/parcial)
-- [ ] Resumen ejecutivo de la sentencia
-- [ ] Días restantes para apelar con indicador visual
-- [ ] Botón "Descargar Sentencia PDF"
-- [ ] Botón "Presentar Recurso de Apelación"
+#### Vista de Sentencia (Ambos Roles)
+- [x] Crear componente de vista (`src/components/sentencias/sentencia-view.tsx`)
+- [x] Integrar en expediente, pestaña "Sentencia"
+- [x] Mostrar información general: decisión, fecha emisión, hash SHA-256
+- [x] Vista completa de todas las secciones (Narrativa, Considerandos, Resolutiva)
+- [x] Badge visual con resultado: ADMITE (verde), RECHAZA (rojo), PARCIAL (amarillo)
+- [x] Para JUEZ: botón "Emitir Sentencia" si no existe, "Completar" si hay borrador
+- [x] Para ABOGADO: mostrar plazo de apelación con días restantes
+- [x] Para ABOGADO: alerta visual con días restantes para apelar
+- [x] Botón placeholder "Presentar Apelación" (funcionalidad pendiente)
+- [ ] Botón "Descargar Sentencia PDF" (TODO: requiere generación de PDF)
 
 #### Recurso de Apelación (ABOGADO)
-- [ ] Página de recurso de apelación (/dashboard/procesos/[nurej]/apelacion)
+- [ ] Página de recurso de apelación (/dashboard/procesos/[id]/apelacion)
 - [ ] Validar que está dentro de 15 días
 - [ ] Formulario: Fundamentación, Agravios, Petitorio
 - [ ] Presentar apelación
@@ -450,10 +467,18 @@
 - [ ] (Proceso pasa a segunda instancia - fuera de alcance MVP)
 
 #### Sentencia Ejecutoriada (Automático)
-- [ ] Proceso automático que corre diariamente
+- [ ] Proceso automático que corre diariamente (cron job)
 - [ ] Detectar sentencias con 15+ días sin apelación
 - [ ] Cambiar estado a EJECUTORIADA
 - [ ] Generar notificación in-app a ABOGADOS "Sentencia ejecutoriada"
+
+#### Archivos Creados
+- [x] `src/lib/validations/sentencia.ts` - Validaciones Zod completas
+- [x] `src/app/api/sentencias/route.ts` - GET y POST (borrador)
+- [x] `src/app/api/sentencias/[id]/emitir/route.ts` - PUT (emisión final)
+- [x] `src/app/(dashboard)/dashboard/juez/procesos/[id]/sentencia/page.tsx` - Página de emisión
+- [x] `src/components/sentencias/sentencia-view.tsx` - Componente de vista
+- [x] `src/components/procesos/expediente-digital.tsx` - Integración de pestaña "Sentencia"
 
 ---
 

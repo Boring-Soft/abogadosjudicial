@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, FileText, Clock, Users, Gavel, Bell, AlertCircle, CheckCircle, Calendar } from "lucide-react";
+import { ArrowLeft, FileText, Clock, Users, Gavel, Bell, AlertCircle, CheckCircle, Calendar, Scale } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { UserRole, EstadoProceso } from "@prisma/client";
 import type { ProcesoWithRelations } from "@/types/judicial";
 import { ResolucionesList } from "@/components/resoluciones/resoluciones-list";
+import { SentenciaView } from "@/components/sentencias/sentencia-view";
 
 const ESTADO_LABELS: Record<EstadoProceso, string> = {
   [EstadoProceso.BORRADOR]: "Borrador",
@@ -347,7 +348,7 @@ export function ExpedienteDigital({ procesoId, userRole }: ExpedienteDigitalProp
 
       {/* Tabs con secciones */}
       <Tabs defaultValue="documentos" className="space-y-4">
-        <TabsList className="grid grid-cols-5 w-full">
+        <TabsList className="grid grid-cols-6 w-full">
           <TabsTrigger value="documentos">
             <FileText className="mr-2 h-4 w-4" />
             Documentos
@@ -363,6 +364,10 @@ export function ExpedienteDigital({ procesoId, userRole }: ExpedienteDigitalProp
           <TabsTrigger value="resoluciones">
             <Gavel className="mr-2 h-4 w-4" />
             Resoluciones
+          </TabsTrigger>
+          <TabsTrigger value="sentencia">
+            <Scale className="mr-2 h-4 w-4" />
+            Sentencia
           </TabsTrigger>
           <TabsTrigger value="timeline">
             <Bell className="mr-2 h-4 w-4" />
@@ -460,6 +465,13 @@ export function ExpedienteDigital({ procesoId, userRole }: ExpedienteDigitalProp
 
         <TabsContent value="resoluciones">
           <ResolucionesList
+            procesoId={proceso.id}
+            isJuez={userRole === UserRole.JUEZ}
+          />
+        </TabsContent>
+
+        <TabsContent value="sentencia">
+          <SentenciaView
             procesoId={proceso.id}
             isJuez={userRole === UserRole.JUEZ}
           />
