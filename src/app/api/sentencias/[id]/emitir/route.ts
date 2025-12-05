@@ -220,7 +220,7 @@ Juez del ${sentencia.proceso.juzgado.nombre}
       notificaciones.push({
         usuarioId: sentencia.proceso.abogadoActorId,
         procesoId: sentencia.proceso.id,
-        tipo: TipoNotificacion.SENTENCIA,
+        tipo: TipoNotificacion.SENTENCIA_EMITIDA,
         titulo: `Sentencia Emitida - ${sentencia.proceso.nurej}`,
         mensaje: `Se ha emitido sentencia en el proceso ${sentencia.proceso.nurej}. Decisión: ${validatedData.decision}. Tiene 15 días hábiles para apelar.`,
         accionUrl: `/dashboard/procesos/${sentencia.proceso.id}?tab=sentencia`,
@@ -232,7 +232,7 @@ Juez del ${sentencia.proceso.juzgado.nombre}
       notificaciones.push({
         usuarioId: sentencia.proceso.abogadoDemandadoId,
         procesoId: sentencia.proceso.id,
-        tipo: TipoNotificacion.SENTENCIA,
+        tipo: TipoNotificacion.SENTENCIA_EMITIDA,
         titulo: `Sentencia Emitida - ${sentencia.proceso.nurej}`,
         mensaje: `Se ha emitido sentencia en el proceso ${sentencia.proceso.nurej}. Decisión: ${validatedData.decision}. Tiene 15 días hábiles para apelar.`,
         accionUrl: `/dashboard/procesos/${sentencia.proceso.id}?tab=sentencia`,

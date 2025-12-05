@@ -354,11 +354,6 @@ export default async function AudienciasPage() {
                           timeStyle: "short",
                         })}
                       </p>
-                      {audiencia.motivoSuspension && (
-                        <p className="text-xs text-orange-600 mt-1">
-                          <strong>Motivo:</strong> {audiencia.motivoSuspension}
-                        </p>
-                      )}
                     </div>
                     <Link
                       href={

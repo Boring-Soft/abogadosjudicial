@@ -94,25 +94,34 @@ export async function getCurrentUser(): Promise<User | null> {
 }
 
 /**
- * Check if the current user has a specific role
+ * Check if a user has a specific role
+ * Can be called in two ways:
+ * 1. hasRole(UserRole.JUEZ) - checks current user
+ * 2. hasRole(userRole, UserRole.JUEZ) - checks provided role
  */
-export async function hasRole(role: UserRole): Promise<boolean> {
-  const user = await getCurrentUser();
-  return user?.role === role;
+export function hasRole(roleOrUserRole: UserRole, targetRole?: UserRole): boolean {
+  if (targetRole !== undefined) {
+    // Two parameter version: hasRole(userRole, targetRole)
+    return roleOrUserRole === targetRole;
+  }
+  // This should not be used anymore, but keeping for backward compatibility
+  throw new Error("hasRole must be called with user role and target role");
 }
 
 /**
  * Check if the current user is an ABOGADO
  */
 export async function isAbogado(): Promise<boolean> {
-  return hasRole(UserRole.ABOGADO);
+  const user = await getCurrentUser();
+  return user?.role === UserRole.ABOGADO;
 }
 
 /**
  * Check if the current user is a JUEZ
  */
 export async function isJuez(): Promise<boolean> {
-  return hasRole(UserRole.JUEZ);
+  const user = await getCurrentUser();
+  return user?.role === UserRole.JUEZ;
 }
 
 /**

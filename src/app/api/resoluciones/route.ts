@@ -225,7 +225,7 @@ Fecha: ${new Date().toISOString()}
       notificaciones.push({
         usuarioId: proceso.abogadoActorId,
         procesoId: proceso.id,
-        tipo: TipoNotificacion.RESOLUCION,
+        tipo: TipoNotificacion.RESOLUCION_EMITIDA,
         titulo: `Nueva Resolución: ${validatedData.titulo}`,
         mensaje: `Se ha emitido una ${validatedData.tipo.toLowerCase().replace("_", " ")} en el proceso ${proceso.nurej}`,
         accionUrl: `/dashboard/procesos/${proceso.id}?tab=resoluciones`,
@@ -237,7 +237,7 @@ Fecha: ${new Date().toISOString()}
       notificaciones.push({
         usuarioId: proceso.abogadoDemandadoId,
         procesoId: proceso.id,
-        tipo: TipoNotificacion.RESOLUCION,
+        tipo: TipoNotificacion.RESOLUCION_EMITIDA,
         titulo: `Nueva Resolución: ${validatedData.titulo}`,
         mensaje: `Se ha emitido una ${validatedData.tipo.toLowerCase().replace("_", " ")} en el proceso ${proceso.nurej}`,
         accionUrl: `/dashboard/procesos/${proceso.id}?tab=resoluciones`,
