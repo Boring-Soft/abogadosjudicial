@@ -114,3 +114,4 @@ DIRECT_URL="postgresql://postgres.swfgvfhpmicwptupjyko:e9zKY_Km5HbkiiF@aws-0-us-
 
 **Nota:** Reemplaza `us-west-1` con la región correcta de tu proyecto si es diferente.
 
+
